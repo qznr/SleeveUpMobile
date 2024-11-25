@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">SleeveUp</string>  <!-- Example: Your app name -->
+    <string name="register_title">SleeveUp!</string>
+    <string name="register_subtitle">Bergabung dengan Sleeve Up dan temukan pengalaman magang yang sesuai.</string>
+    <string name="name_hint">Nama Lengkap</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="register">Buat Akun</string>
+    <string name="register_with_google">Daftar dengan Google</string>
+    <string name="already_have_account">Sudah punya akun?</string>
+    <string name="login">Masuk</string>
+    <string name="terms_and_conditions">Dengan mengklik Setuju &amp; Bergabung, Anda menyetujui Perjanjian Pengguna dan Kebijakan Privasi Sleeve Up.</string>
+    <string name="welcome_back">Selamat datang kembali di SleeveUp! Portal pencarian magang untuk masa depan Anda.</string>
+    <string name="login_with_google">Masuk dengan Google</string>
+    <string name="dont_have_account">Belum punya akun?</string>
+    <string name="forgot_password">Lupa password?</string>
+</resources>

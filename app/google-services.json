@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "555888605103",
+    "project_id": "sleeveup-9d087",
+    "storage_bucket": "sleeveup-9d087.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:555888605103:android:32b4fb4cb48af6cd42a15a",
+        "android_client_info": {
+          "package_name": "com.mockingbird.sleeveup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "555888605103-ns9575i34vg3u7qu67c2g5tvv3j21ng8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mockingbird.sleeveup",
+            "certificate_hash": "d69b08a93a670ac2bb882bc4d439b13c024dd0c1"
+          }
+        },
+        {
+          "client_id": "555888605103-r2a2bv74ibhl5fkv0p5b2tumkmh5fbf0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgwHDKZiInANewhvqU5gNnjWVAOJs70YU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "555888605103-r2a2bv74ibhl5fkv0p5b2tumkmh5fbf0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
