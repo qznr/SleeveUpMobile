@@ -13,7 +13,8 @@ class AuthService(private val firebaseAuth: FirebaseAuth) {
     suspend fun register(user: User): FirebaseUser? {
         val authResult = firebaseAuth.createUserWithEmailAndPassword(
             user.email,
-            user.password ?: throw IllegalArgumentException("Password cannot be null for registration")
+            user.password
+                ?: throw IllegalArgumentException("Password cannot be null for registration")
         ).await()
 
         return authResult.user

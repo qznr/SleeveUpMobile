@@ -6,6 +6,7 @@
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
     <string name="register">Buat Akun</string>
+    <string name="logout">Logout</string>
     <string name="register_with_google">Daftar dengan Google</string>
     <string name="already_have_account">Sudah punya akun?</string>
     <string name="login">Masuk</string>

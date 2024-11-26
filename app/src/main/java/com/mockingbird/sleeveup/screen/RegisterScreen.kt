@@ -13,17 +13,28 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.R
+import com.mockingbird.sleeveup.factory.RegisterViewModelFactory
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.ui.theme.*
-import com.mockingbird.sleeveup.viewmodel.RegisterViewModel
-import com.mockingbird.sleeveup.viewmodel.RegistrationState
+import com.mockingbird.sleeveup.model.RegisterViewModel
+import com.mockingbird.sleeveup.repository.FirebaseUserRepository
+import com.mockingbird.sleeveup.service.AuthService
+import com.mockingbird.sleeveup.service.FirestoreService
+import kotlinx.coroutines.launch
 
 private const val TAG = "RegisterScreen"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = viewModel()) {
+fun RegisterScreen(navController: NavController) {
+
+    val authService = AuthService(FirebaseAuth.getInstance())
+    val firestore = FirebaseFirestore.getInstance()
+    val userRepository = FirebaseUserRepository(FirestoreService(firestore))
+    val viewModelFactory = RegisterViewModelFactory(authService, userRepository)
+    val viewModel: RegisterViewModel = viewModel(factory = viewModelFactory)
 
     Log.d(TAG, "RegisterScreen composition started")
 
@@ -52,14 +63,11 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
 
     Log.d(TAG, "Current registration state: ${registrationState.value}")
 
-    if(registrationState.value is RegistrationState.Success){
-        LaunchedEffect(Unit){
-            navController.navigate(Screen.Login.route)
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
-        containerColor = DarkPurple
+        snackbarHost = { SnackbarHost(snackbarHostState) }, containerColor = DarkPurple
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -71,14 +79,12 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
         ) {
             Text(
                 text = stringResource(id = R.string.register_title), // SleeveUp!
-                style = MaterialTheme.typography.displaySmall,
-                color = MajorelieBlue
+                style = MaterialTheme.typography.displaySmall, color = MajorelieBlue
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(id = R.string.register_subtitle), //Subtitle text
-                style = MaterialTheme.typography.bodyMedium,
-                color = White
+                style = MaterialTheme.typography.bodyMedium, color = White
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -146,26 +152,37 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                     checked = isAgreed,
                     onCheckedChange = { isAgreed = it },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = MajorelieBlue,
-                        uncheckedColor = White
+                        checkedColor = MajorelieBlue, uncheckedColor = White
                     )
                 )
                 Text(
-                    text = stringResource(id = R.string.terms_and_conditions),
-                    color = White
+                    text = stringResource(id = R.string.terms_and_conditions), color = White
                 )
-
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(
-                onClick = { /*viewModel.register(name, email, password)*/ },
+                onClick = {
+                    if (name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isAgreed) {
+                        viewModel.register(name, email, password)
+                        registrationSuccessful = true // Set the flag after successful registration
+                    } else {
+                        // Show input error Snackbar (using the same snackbarHostState)
+                        scope.launch { // Launch in the correct scope
+                            snackbarHostState.showSnackbar(
+                                message = "Please fill in all fields and agree to the terms.",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
-
             ) {
                 Text(stringResource(id = R.string.register), color = White)
             }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
@@ -185,6 +202,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Row {
                 Text(stringResource(R.string.already_have_account), color = White)
                 Spacer(modifier = Modifier.width(4.dp))
@@ -194,4 +212,13 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
             }
         }
     }
+
+    if (registrationSuccessful) {
+        LaunchedEffect(Unit) { // Use LaunchedEffect to perform side effects
+            navController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Register.route) { inclusive = true }
+            }
+        }
+    }
+
 }

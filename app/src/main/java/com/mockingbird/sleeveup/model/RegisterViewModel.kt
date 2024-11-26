@@ -1,4 +1,4 @@
-package com.mockingbird.sleeveup.viewmodel
+package com.mockingbird.sleeveup.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,19 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class RegisterViewModel(
-    private val authService: AuthService,
-    private val userRepository: UserRepository
+    private val authService: AuthService, private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _registrationState = MutableStateFlow<RegistrationState>(RegistrationState.Idle)
     val registrationState: StateFlow<RegistrationState> = _registrationState.asStateFlow()
 
-
     fun register(name: String, email: String, password: String) {
         viewModelScope.launch {
             try {
-                _registrationState.value = RegistrationState.Loading
-
                 val newUser = User(
                     id = "",
                     name = name,
@@ -41,9 +37,13 @@ class RegisterViewModel(
                 } else {
                     _registrationState.value = RegistrationState.Error("Registration failed")
                 }
-
             } catch (e: Exception) {
-                _registrationState.value = RegistrationState.Error(e.message ?: "Unknown error")
+                _registrationState.value =
+                    RegistrationState.Error(e.message ?: "Registration failed")
+            } finally {
+                if (_registrationState.value is RegistrationState.Loading) {
+                    _registrationState.value = RegistrationState.Idle
+                }
             }
         }
     }
