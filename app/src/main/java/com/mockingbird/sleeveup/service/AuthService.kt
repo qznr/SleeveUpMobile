@@ -1,6 +1,5 @@
 package com.mockingbird.sleeveup.service
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -20,7 +19,6 @@ class AuthService(private val firebaseAuth: FirebaseAuth) {
             user.password
                 ?: throw IllegalArgumentException("Password cannot be null for registration")
         ).await()
-
         return authResult.user
     }
 

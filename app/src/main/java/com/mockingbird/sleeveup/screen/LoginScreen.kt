@@ -1,7 +1,5 @@
 package com.mockingbird.sleeveup.screen
 
-import android.app.Activity
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -26,32 +24,31 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.auth
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.factory.LoginViewModelFactory
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.ui.theme.*
 import com.mockingbird.sleeveup.model.LoginViewModel
 import com.mockingbird.sleeveup.service.AuthService
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    val authService = AuthService(FirebaseAuth.getInstance()) // Create AuthService instance
+    val authService = AuthService(FirebaseAuth.getInstance())
     val viewModelFactory =
-        LoginViewModelFactory(authService, navController) // Create ViewModel Factory instance
+        LoginViewModelFactory(authService, navController) // Create ViewModel Factory instance IMPORTANT
     val viewModel: LoginViewModel = viewModel(factory = viewModelFactory)
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     var showError by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
     val greyColor = Color(0xFFBDBDBD)
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
 
     val launcher = rememberLauncherForActivityResult(
@@ -59,10 +56,11 @@ fun LoginScreen(navController: NavController) {
     ) { result ->
         viewModel.handleSignInResult(result) { firebaseUser ->
             if (firebaseUser != null) {
-                // Navigate to the profile screen or perform other actions
                 navController.navigate(Screen.Profile.createRoute(firebaseUser.email ?: ""))
             } else {
-                showError = true
+                scope.launch {
+                    snackbarHostState.showSnackbar("Google Sign In Failed")
+                }
             }
         }
     }
@@ -73,7 +71,8 @@ fun LoginScreen(navController: NavController) {
     val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
     Scaffold(
-        containerColor = AlmostBlack
+        containerColor = AlmostBlack,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,7 +97,7 @@ fun LoginScreen(navController: NavController) {
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(32.dp)) // Increased the space to 32 dp
+            Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
                 value = email,
@@ -163,7 +162,18 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { viewModel.login(email, password) },
+                onClick = {
+                    if (email.isBlank() || password.isBlank()) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = "Email dan Password tidak boleh kosong", duration = SnackbarDuration.Short)
+                        }
+                    }
+                    else {
+                        viewModel.login(email, password)
+                        showError = false
+                        errorMessage = ""
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.small,
                 colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
@@ -197,10 +207,6 @@ fun LoginScreen(navController: NavController) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(id = R.string.login_with_google), color = White, style = MaterialTheme.typography.bodyMedium)
                 }
-            }
-
-            if (showError) {
-                Text("Login failed", color = Color.Red, style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
