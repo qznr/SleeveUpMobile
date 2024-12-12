@@ -78,8 +78,12 @@ dependencies {
     // Also add the dependency for the Google Play services library and specify its version
     implementation(libs.play.services.auth)
 
-    implementation ("androidx.credentials:credentials:1.3.0")
-    implementation ("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    // Realtime Database
+    implementation ("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.11.0")
+//    implementation ("com.squareup.retrofit2.converter:converter-gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.9.0")
 
 }
