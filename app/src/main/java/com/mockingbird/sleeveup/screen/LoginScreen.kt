@@ -39,39 +39,6 @@ import com.mockingbird.sleeveup.ui.theme.*
 import com.mockingbird.sleeveup.model.LoginViewModel
 import com.mockingbird.sleeveup.service.AuthService
 
-// Ini adalah helper function, tidak perlu disentuh kecuali kalau mau dipindah ke viewModel
-private fun handleSignInResult(
-    result: androidx.activity.result.ActivityResult, onComplete: (FirebaseUser?) -> Unit
-) {
-    if (result.resultCode == Activity.RESULT_OK) {
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)!!
-            Log.d("LoginScreen", "firebaseAuthWithGoogle:" + account.id)
-            firebaseAuthWithGoogle(account.idToken!!, onComplete)
-        } catch (e: ApiException) {
-            Log.w("LoginScreen", "Google sign in failed", e)
-            onComplete(null) // Important: Call onComplete with null on failure
-        }
-    } else {
-        onComplete(null) // Also handle cases where the result is not OK
-    }
-}
-
-// Ini adalah helper function, tidak perlu disentuh kecuali kalau mau dipindah ke viewModel
-private fun firebaseAuthWithGoogle(idToken: String, onComplete: (FirebaseUser?) -> Unit) {
-    val credential = GoogleAuthProvider.getCredential(idToken, null)
-    Firebase.auth.signInWithCredential(credential).addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            Log.d("LoginScreen", "signInWithCredential:success")
-            onComplete(Firebase.auth.currentUser)
-        } else {
-            Log.w("LoginScreen", "signInWithCredential:failure", task.exception)
-            onComplete(null)
-        }
-    }
-}
-
 @Composable
 fun LoginScreen(navController: NavController) {
     val authService = AuthService(FirebaseAuth.getInstance()) // Create AuthService instance
@@ -90,7 +57,7 @@ fun LoginScreen(navController: NavController) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        handleSignInResult(result) { firebaseUser ->
+        viewModel.handleSignInResult(result) { firebaseUser ->
             if (firebaseUser != null) {
                 // Navigate to the profile screen or perform other actions
                 navController.navigate(Screen.Profile.createRoute(firebaseUser.email ?: ""))

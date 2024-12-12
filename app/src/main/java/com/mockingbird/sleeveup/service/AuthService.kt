@@ -1,12 +1,16 @@
 package com.mockingbird.sleeveup.service
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.mockingbird.sleeveup.entity.User
 import kotlinx.coroutines.tasks.await
-
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class AuthService(private val firebaseAuth: FirebaseAuth) {
 
@@ -26,5 +30,14 @@ class AuthService(private val firebaseAuth: FirebaseAuth) {
 
     fun signOut() {
         firebaseAuth.signOut()
+    }
+
+    fun firebaseAuthWithGoogle(idToken: String): Task<AuthResult> {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        return Firebase.auth.signInWithCredential(credential)
+    }
+
+    fun signOutGoogle(googleSignInClient: GoogleSignInClient): Task<Void> {
+        return googleSignInClient.signOut()
     }
 }

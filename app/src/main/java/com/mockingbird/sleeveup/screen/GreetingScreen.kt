@@ -6,17 +6,28 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.R
+import com.mockingbird.sleeveup.service.AuthService
+
 
 @Composable
 fun ProfileScreen(navController: NavController, email: String) {
-    val auth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
+    val authService = AuthService(FirebaseAuth.getInstance())
+    val context = LocalContext.current
+
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
+
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -27,15 +38,16 @@ fun ProfileScreen(navController: NavController, email: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button (
+        Button(
             onClick = {
-                auth.signOut()
-                navController.navigate(Screen.Login.route) {
-                    // Pop everything up to and including the Login screen
-                    // to prevent the user from going back to the Profile screen
-                    // after logging out.
-                    popUpTo(Screen.Login.route) { inclusive = true }
+                authService.signOut()
+                authService.signOutGoogle(googleSignInClient).addOnCompleteListener{
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
+
+
             },
             modifier = Modifier.fillMaxWidth(0.5f) // Make the button smaller
         ) {
