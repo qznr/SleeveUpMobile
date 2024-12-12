@@ -4,6 +4,7 @@ import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -13,9 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -33,7 +38,6 @@ import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.ui.theme.*
 import com.mockingbird.sleeveup.model.LoginViewModel
 import com.mockingbird.sleeveup.service.AuthService
-
 
 // Ini adalah helper function, tidak perlu disentuh kecuali kalau mau dipindah ke viewModel
 private fun handleSignInResult(
@@ -58,14 +62,14 @@ private fun handleSignInResult(
 private fun firebaseAuthWithGoogle(idToken: String, onComplete: (FirebaseUser?) -> Unit) {
     val credential = GoogleAuthProvider.getCredential(idToken, null)
     Firebase.auth.signInWithCredential(credential).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d("LoginScreen", "signInWithCredential:success")
-                onComplete(Firebase.auth.currentUser)
-            } else {
-                Log.w("LoginScreen", "signInWithCredential:failure", task.exception)
-                onComplete(null)
-            }
+        if (task.isSuccessful) {
+            Log.d("LoginScreen", "signInWithCredential:success")
+            onComplete(Firebase.auth.currentUser)
+        } else {
+            Log.w("LoginScreen", "signInWithCredential:failure", task.exception)
+            onComplete(null)
         }
+    }
 }
 
 @Composable
@@ -79,6 +83,9 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     var showError by rememberSaveable { mutableStateOf(false) }
+    val greyColor = Color(0xFFBDBDBD)
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -99,7 +106,7 @@ fun LoginScreen(navController: NavController) {
     val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
     Scaffold(
-        containerColor = DarkPurple
+        containerColor = AlmostBlack
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -109,35 +116,39 @@ fun LoginScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = stringResource(id = R.string.register_title),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MajorelieBlue
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = stringResource(id = R.string.welcome_back),
-                style = MaterialTheme.typography.displaySmall,
-                color = MajorelieBlue
+                style = MaterialTheme.typography.titleLarge,
+                color = White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
-//            Spacer(modifier = Modifier.height(8.dp))
-//            Text(
-//                text = stringResource(id = R.string.login_subtitle),
-//                style = MaterialTheme.typography.bodyMedium,
-//                color = White
-//            )
-//            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(32.dp)) // Increased the space to 32 dp
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text(stringResource(id = R.string.email_hint), color = White) },
+                label = { Text(stringResource(id = R.string.email_hint), color = greyColor, style = MaterialTheme.typography.bodyMedium) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = White,
                     unfocusedTextColor = White,
                     focusedBorderColor = MajorelieBlue,
-                    unfocusedBorderColor = White,
+                    unfocusedBorderColor = greyColor,
                     cursorColor = White,
-                    focusedLabelColor = White,
-                    unfocusedLabelColor = White
-                )
+                    focusedLabelColor = MajorelieBlue,
+                    unfocusedLabelColor = greyColor
+                ),
+                textStyle = MaterialTheme.typography.bodyMedium,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -145,73 +156,100 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text(stringResource(id = R.string.password_hint), color = White) },
+                label = { Text(stringResource(id = R.string.password_hint), color = greyColor, style = MaterialTheme.typography.bodyMedium) },
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        R.drawable.visibility
+                    else R.drawable.visibility_off
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+
+                    IconButton(onClick = {passwordVisible = !passwordVisible}){
+                        Icon(painter = painterResource(id = image), contentDescription = description)
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = White,
                     unfocusedTextColor = White,
                     focusedBorderColor = MajorelieBlue,
-                    unfocusedBorderColor = White,
+                    unfocusedBorderColor = greyColor,
                     cursorColor = White,
-                    focusedLabelColor = White,
-                    unfocusedLabelColor = White
-                )
+                    focusedLabelColor = MajorelieBlue,
+                    unfocusedLabelColor = greyColor
+                ),
+                textStyle = MaterialTheme.typography.bodyMedium,
             )
+
+            TextButton(
+                onClick = { /*TODO*/ },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Text(
+                    text = stringResource(R.string.forgot_password),
+                    color = MajorelieBlue,
+                    style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = { viewModel.login(email, password) },
                 modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.small,
                 colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
             ) {
-                Text(stringResource(id = R.string.login), color = White)
+                Text(stringResource(id = R.string.login), color = White, style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
+            OutlinedButton(
                 onClick = {
                     val signInIntent = googleSignInClient.signInIntent
                     launcher.launch(signInIntent)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = White)
+                shape = MaterialTheme.shapes.small,
+                border = BorderStroke(1.dp, MajorelieBlue),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = White,
+                    containerColor = Color.Transparent,
+                )
 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-//                    Icon(
-//                        // Replace with actual Google Icon
-//                        imageVector = Icons.Default.Email,
-//                        contentDescription = null,
-//                        tint = AlmostBlack
-//                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_google),
+                        contentDescription = "Google Icon",
+                        modifier = Modifier.size(24.dp), // Set the size here
+                        tint = Color.Unspecified // Use Color.Unspecified to use the original icon color
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(id = R.string.login_with_google), color = AlmostBlack)
+                    Text(stringResource(id = R.string.login_with_google), color = White, style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
             if (showError) {
-                Text("Login failed", color = Color.Red)
+                Text("Login failed", color = Color.Red, style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row {
-                Text(stringResource(R.string.dont_have_account), color = White)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.dont_have_account), color = White, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.width(4.dp))
                 TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
-                    Text(stringResource(R.string.register), color = MajorelieBlue)
+                    Text(
+                        text = stringResource(R.string.register),
+                        color = MajorelieBlue,
+                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                    )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = { /*TODO*/ }) {
-                Text(stringResource(R.string.forgot_password), color = White)
-            }
         }
     }
 }
