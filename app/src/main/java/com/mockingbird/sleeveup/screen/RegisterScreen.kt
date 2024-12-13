@@ -68,7 +68,9 @@ fun RegisterScreen(navController: NavController) {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         viewModel.handleSignInResult(result) { firebaseUser ->
-            if (firebaseUser == null) {
+            if (firebaseUser != null) {
+                navController.navigate(Screen.Profile.createRoute(firebaseUser.email ?: ""))
+            } else {
                 scope.launch {
                     snackbarHostState.showSnackbar("Google Sign In Failed")
                 }
@@ -76,6 +78,8 @@ fun RegisterScreen(navController: NavController) {
         }
     }
 
+//    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//        .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
 
@@ -111,7 +115,13 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(id = R.string.name_hint), color = greyColor, style = MaterialTheme.typography.bodyMedium) },
+                label = {
+                    Text(
+                        stringResource(id = R.string.name_hint),
+                        color = greyColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = White,
@@ -130,7 +140,13 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text(stringResource(id = R.string.email_hint), color = greyColor, style = MaterialTheme.typography.bodyMedium) },
+                label = {
+                    Text(
+                        stringResource(id = R.string.email_hint),
+                        color = greyColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -150,7 +166,13 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text(stringResource(id = R.string.password_hint), color = greyColor, style = MaterialTheme.typography.bodyMedium) },
+                label = {
+                    Text(
+                        stringResource(id = R.string.password_hint),
+                        color = greyColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -179,7 +201,9 @@ fun RegisterScreen(navController: NavController) {
                     )
                 )
                 Text(
-                    text = stringResource(id = R.string.terms_and_conditions), color = White, style = MaterialTheme.typography.bodySmall
+                    text = stringResource(id = R.string.terms_and_conditions),
+                    color = White,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -202,7 +226,11 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
             ) {
-                Text(stringResource(id = R.string.register), color = White, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    stringResource(id = R.string.register),
+                    color = White,
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -236,28 +264,36 @@ fun RegisterScreen(navController: NavController) {
                 }
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.already_have_account), color = White, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.already_have_account),
+                    color = White,
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 Spacer(modifier = Modifier.width(4.dp))
                 TextButton(onClick = { navController.navigate(Screen.Login.route) }) {
-                    Text(stringResource(R.string.login),
+                    Text(
+                        stringResource(R.string.login),
                         color = MajorelieBlue,
-                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline))
+                        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                    )
                 }
             }
 
-            when(registrationState){
-                is RegisterViewModel.RegistrationState.Success ->{
+            when (registrationState) {
+                is RegisterViewModel.RegistrationState.Success -> {
                 }
-                is RegisterViewModel.RegistrationState.Error ->{
-                    val errorMessage = (registrationState as RegisterViewModel.RegistrationState.Error).message
+
+                is RegisterViewModel.RegistrationState.Error -> {
+                    val errorMessage =
+                        (registrationState as RegisterViewModel.RegistrationState.Error).message
                     scope.launch {
                         snackbarHostState.showSnackbar(errorMessage)
                     }
                 }
+
                 else -> Unit
             }
         }
