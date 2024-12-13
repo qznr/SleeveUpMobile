@@ -58,11 +58,8 @@ fun ProfileScreen(navController: NavController, email: String) {
         }
     }
 
-
-
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Hello, $email", modifier = Modifier.padding(16.dp))
         // spacer for the sign out button
@@ -76,8 +73,7 @@ fun ProfileScreen(navController: NavController, email: String) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
-            },
-            modifier = Modifier.fillMaxWidth(0.5f)
+            }, modifier = Modifier.fillMaxWidth(0.5f)
         ) {
             Text(stringResource(R.string.logout))
         }
@@ -89,47 +85,44 @@ fun ProfileScreen(navController: NavController, email: String) {
         ) {
             items(companies.toList()) { (companyId, company) ->
                 CompanyCard(
-                    company_id = companyId,
+                    companyId = companyId,
                     company = company,
                     isExpanded = expandedCompanyId == companyId,
                     onCardClick = {
                         expandedCompanyId = if (expandedCompanyId == companyId) null else companyId
-                        if (expandedCompanyId != null){
+                        if (expandedCompanyId != null) {
                             scope.launch {
-                                try{
-                                    jobOffers = apiService.getJobOffersByCompanyId(companyId = companyId)
-                                } catch (e: Exception){
-                                    Log.e("API_TEST", "Error fetching job offers for company id ${companyId}: ${e.message}")
+                                try {
+                                    jobOffers =
+                                        apiService.getJobOffersByCompanyId(companyId = "\"${companyId}\"")
+                                } catch (e: Exception) {
+                                    Log.e(
+                                        "API_TEST",
+                                        "Error fetching job offers for company id ${companyId}: ${e.message}"
+                                    )
                                 }
                             }
                         }
-                    }
-                    ,
-                    jobOffers = jobOffers.filter { it.value.company_id == companyId}.values.toList()
+                    },
+                    jobOffers = jobOffers.filter { it.value.company_id == companyId }.values.toList()
                 )
-
             }
         }
     }
 }
 
-
-
 @Composable
 fun CompanyCard(
-    company_id: String,
+    companyId: String,
     company: Company,
     isExpanded: Boolean,
     onCardClick: () -> Unit,
     jobOffers: List<JobOffer>
-
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onCardClick() }
-    ) {
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .clickable { onCardClick() }) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -140,7 +133,7 @@ fun CompanyCard(
             )
 
             Text(
-                text = company_id,
+                text = companyId,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -154,13 +147,12 @@ fun CompanyCard(
                 visible = isExpanded,
                 enter = expandVertically(animationSpec = tween(300)),
                 exit = shrinkVertically(animationSpec = tween(300))
-            ){
-                Column{
-                    if (jobOffers.isEmpty()){
+            ) {
+                Column {
+                    if (jobOffers.isEmpty()) {
                         Text(text = "No jobs offers for this company yet!")
-                    }
-                    else {
-                        jobOffers.forEach{ jobOffer ->
+                    } else {
+                        jobOffers.forEach { jobOffer ->
                             JobOfferCard(jobOffer = jobOffer)
                         }
                     }
@@ -181,7 +173,7 @@ fun JobOfferCard(jobOffer: JobOffer) {
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
-        ){
+        ) {
             Text(
                 text = jobOffer.profession,
                 style = MaterialTheme.typography.titleMedium,
