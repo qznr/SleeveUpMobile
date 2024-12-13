@@ -69,14 +69,14 @@ class LoginViewModel(
             try {
                 _loginState.value = LoginState.Loading
                 val task = authService.firebaseAuthWithGoogle(idToken)
-                task.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
+                task.addOnCompleteListener { result ->
+                    if (result.isSuccessful) {
                         Log.d("LoginScreen", "signInWithCredential:success")
-                        _loginState.value = LoginState.Success(task.result.user)
+                        _loginState.value = LoginState.Success(result.result.user)
                         onComplete(FirebaseAuth.getInstance().currentUser)
                     } else {
-                        Log.w("LoginScreen", "signInWithCredential:failure", task.exception)
-                        _loginState.value = LoginState.Error(task.exception?.message ?: "Unknown Error")
+                        Log.w("LoginScreen", "signInWithCredential:failure", result.exception)
+                        _loginState.value = LoginState.Error(result.exception?.message ?: "Unknown Error")
                         onComplete(null)
                     }
                 }

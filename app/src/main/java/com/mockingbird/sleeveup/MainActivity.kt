@@ -11,7 +11,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mockingbird.sleeveup.navigation.Screen
+import com.mockingbird.sleeveup.screen.EditUserProfileScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
+import com.mockingbird.sleeveup.screen.LandingScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
 import com.mockingbird.sleeveup.screen.RegisterScreen // Import RegisterScreen
 import com.mockingbird.sleeveup.ui.theme.SleeveUpTheme
@@ -43,8 +45,21 @@ fun AppNavigation() {
             arguments = listOf(navArgument("email"){type = NavType.StringType})
         ) { navBackStackEntry ->
             val email = navBackStackEntry.arguments?.getString("email") ?: "Guest"
-            ProfileScreen(navController, email)
+            LandingScreen(navController, email)
         }
-        // Add more composable routes as needed for other screens
+        composable(
+            route = Screen.UserProfile.route,
+            arguments = listOf(navArgument("userId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+                val userId = navBackStackEntry.arguments?.getString("userId") ?: "Guest"
+            ProfileScreen(navController = navController, userId = userId)
+        }
+        composable(
+            route = Screen.EditUserProfile.route,
+            arguments = listOf(navArgument("userId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+            val userId = navBackStackEntry.arguments?.getString("userId") ?: "Guest"
+            EditUserProfileScreen(navController = navController, userId = userId)
+        }
     }
 }

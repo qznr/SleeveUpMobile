@@ -14,12 +14,17 @@ import com.google.firebase.auth.auth
 class AuthService(private val firebaseAuth: FirebaseAuth) {
 
     suspend fun register(user: User): FirebaseUser? {
-        val authResult = firebaseAuth.createUserWithEmailAndPassword(
-            user.email,
-            user.password
-                ?: throw IllegalArgumentException("Password cannot be null for registration")
-        ).await()
-        return authResult.user
+        val authResult = user.email?.let {
+            firebaseAuth.createUserWithEmailAndPassword(
+                it,
+                user.password
+                    ?: throw IllegalArgumentException("Password cannot be null for registration")
+            ).await()
+        }
+        if (authResult != null) {
+            return authResult.user
+        }
+        return null
     }
 
     fun login(email: String, password: String): Task<AuthResult> {

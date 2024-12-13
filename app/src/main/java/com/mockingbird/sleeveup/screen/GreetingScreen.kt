@@ -27,27 +27,43 @@ import com.mockingbird.sleeveup.retrofit.ApiConfig
 import com.mockingbird.sleeveup.service.AuthService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.entity.JobOffer
+import com.mockingbird.sleeveup.entity.User
+import com.mockingbird.sleeveup.repository.FirebaseUserRepository
+import com.mockingbird.sleeveup.service.FirestoreService
+import com.google.firebase.firestore.FirebaseFirestore
+import com.mockingbird.sleeveup.factory.EditProfileViewModelFactory
+import com.mockingbird.sleeveup.model.EditProfileViewModel
+import com.mockingbird.sleeveup.service.StorageService
 
+private const val TAG = "LandingScreen"
 
 @Composable
-fun ProfileScreen(navController: NavController, email: String) {
-    val authService = AuthService(FirebaseAuth.getInstance())
-    val context = LocalContext.current
+fun LandingScreen(navController: NavController, email: String) {
     val apiService = ApiConfig.getApiService()
     val scope = rememberCoroutineScope()
-
-    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
-
-    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+    val firestore = FirebaseFirestore.getInstance()
+    val firestoreService = FirestoreService(firestore)
+    val userRepository = FirebaseUserRepository(firestoreService)
+    val storageService = StorageService()
+    val authService = FirebaseAuth.getInstance()
+    val viewModelFactory =
+        EditProfileViewModelFactory(authService, userRepository, storageService, navController)
+    val viewModel: EditProfileViewModel = viewModel(factory = viewModelFactory)
 
     var companies by remember { mutableStateOf<Map<String, Company>>(emptyMap()) }
     var expandedCompanyId by remember { mutableStateOf<String?>(null) }
     var jobOffers by remember { mutableStateOf<Map<String, JobOffer>>(emptyMap()) }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-    LaunchedEffect(key1 = Unit) {
+    val userState by viewModel.userState.collectAsState()
+    val updateState by viewModel.updateState.collectAsState()
+    LaunchedEffect(key1 = userId) {
+        if (userId != null) {
+            viewModel.fetchUser(userId)
+        }
         scope.launch {
             try {
                 val fetchedCompanies = apiService.getCompanies()
@@ -65,17 +81,16 @@ fun ProfileScreen(navController: NavController, email: String) {
         // spacer for the sign out button
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                authService.signOut()
-                authService.signOutGoogle(googleSignInClient).addOnCompleteListener {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+        Row {
+            Button(
+                onClick = {
+                    userId?.let {
+                        navController.navigate(Screen.UserProfile.createRoute(it))
                     }
-                }
-            }, modifier = Modifier.fillMaxWidth(0.5f)
-        ) {
-            Text(stringResource(R.string.logout))
+                }, modifier = Modifier.fillMaxWidth(0.5f)
+            ) {
+                Text(stringResource(R.string.my_profile))
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -84,8 +99,7 @@ fun ProfileScreen(navController: NavController, email: String) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(companies.toList()) { (companyId, company) ->
-                CompanyCard(
-                    companyId = companyId,
+                CompanyCard(companyId = companyId,
                     company = company,
                     isExpanded = expandedCompanyId == companyId,
                     onCardClick = {
@@ -104,10 +118,28 @@ fun ProfileScreen(navController: NavController, email: String) {
                             }
                         }
                     },
-                    jobOffers = jobOffers.filter { it.value.company_id == companyId }.values.toList()
-                )
+                    jobOffers = jobOffers.filter { it.value.company_id == companyId },
+                    user = if (userState is EditProfileViewModel.EditProfileState.Success) {
+                        (userState as EditProfileViewModel.EditProfileState.Success).user
+                    } else null,
+                    onJobOfferApply = { updatedUser ->
+                        Log.d(TAG, "onJobOfferApply called with user: $updatedUser")
+                        if (userId != null) {
+                            viewModel.updateUser(updatedUser)
+                        }
+                    })
             }
         }
+    }
+
+    when (updateState) {
+        is EditProfileViewModel.UpdateState.Success -> {
+            Log.d(TAG, "Update successful: ${(updateState as EditProfileViewModel.UpdateState.Success).user}")
+        }
+        is EditProfileViewModel.UpdateState.Error -> {
+            Log.d(TAG, "Update error: ${(updateState as EditProfileViewModel.UpdateState.Error).message}")
+        }
+        else -> {}
     }
 }
 
@@ -117,7 +149,9 @@ fun CompanyCard(
     company: Company,
     isExpanded: Boolean,
     onCardClick: () -> Unit,
-    jobOffers: List<JobOffer>
+    jobOffers: Map<String, JobOffer>,
+    user: User?,
+    onJobOfferApply: (User) -> Unit
 ) {
     Card(modifier = Modifier
         .fillMaxWidth()
@@ -152,8 +186,13 @@ fun CompanyCard(
                     if (jobOffers.isEmpty()) {
                         Text(text = "No jobs offers for this company yet!")
                     } else {
-                        jobOffers.forEach { jobOffer ->
-                            JobOfferCard(jobOffer = jobOffer)
+                        jobOffers.toList().forEach { (jobOfferId, jobOffer) ->
+                            JobOfferCard(
+                                jobOfferId = jobOfferId,
+                                jobOffer = jobOffer,
+                                onJobOfferApply = onJobOfferApply,
+                                user = user
+                            )
                         }
                     }
 
@@ -163,9 +202,17 @@ fun CompanyCard(
     }
 }
 
-
 @Composable
-fun JobOfferCard(jobOffer: JobOffer) {
+fun JobOfferCard(
+    jobOfferId: String, jobOffer: JobOffer, onJobOfferApply: (User) -> Unit, user: User?
+) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    var isPending by remember(user, jobOfferId) {
+        mutableStateOf(user?.pendingJobApplication?.containsKey(jobOfferId) == true)
+    }
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,7 +231,24 @@ fun JobOfferCard(jobOffer: JobOffer) {
                 text = jobOffer.description,
                 style = MaterialTheme.typography.bodyMedium,
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                Log.d(TAG, "Job offer button clicked, isPending: $isPending, user: $user, jobOfferId: $jobOfferId")
+                if (userId != null && user != null) {
+                    val updatedUser = user.copy(
+                        pendingJobApplication = if (isPending) {
+                            // Keeps the current list, do not do anything to it
+                            // You can only remove pending job apps from the edit profile page
+                            user.pendingJobApplication
+                        } else {
+                            (user.pendingJobApplication ?: emptyMap()) + (jobOfferId to jobOffer)
+                        }
+                    )
+                    onJobOfferApply(updatedUser)
+                    isPending = !isPending
+                }
+            },
+                enabled = !isPending) { Text(if (isPending) "Sudah Dilamar!" else "Lamar sekarang!") }
         }
-
     }
 }

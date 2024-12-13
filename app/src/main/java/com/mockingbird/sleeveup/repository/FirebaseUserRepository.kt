@@ -12,4 +12,8 @@ class FirebaseUserRepository(private val firebaseService: FirestoreService) : Us
     override suspend fun saveUser(user: User) {
         firebaseService.saveUser(user)
     }
+
+    override suspend fun updateUser(user: User) {
+        firebaseService.updateUser(user)
+    }
 }
