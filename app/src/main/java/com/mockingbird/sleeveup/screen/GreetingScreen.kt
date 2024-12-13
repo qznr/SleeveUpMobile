@@ -13,18 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.retrofit.ApiConfig
-import com.mockingbird.sleeveup.service.AuthService
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,6 +56,9 @@ fun LandingScreen(navController: NavController, email: String) {
 
     val userState by viewModel.userState.collectAsState()
     val updateState by viewModel.updateState.collectAsState()
+    val pendingStates by viewModel.pendingJobOfferStates.collectAsState()
+
+
     LaunchedEffect(key1 = userId) {
         if (userId != null) {
             viewModel.fetchUser(userId)
@@ -99,7 +98,8 @@ fun LandingScreen(navController: NavController, email: String) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(companies.toList()) { (companyId, company) ->
-                CompanyCard(companyId = companyId,
+                CompanyCard(
+                    companyId = companyId,
                     company = company,
                     isExpanded = expandedCompanyId == companyId,
                     onCardClick = {
@@ -122,23 +122,27 @@ fun LandingScreen(navController: NavController, email: String) {
                     user = if (userState is EditProfileViewModel.EditProfileState.Success) {
                         (userState as EditProfileViewModel.EditProfileState.Success).user
                     } else null,
-                    onJobOfferApply = { updatedUser ->
-                        Log.d(TAG, "onJobOfferApply called with user: $updatedUser")
-                        if (userId != null) {
-                            viewModel.updateUser(updatedUser)
-                        }
-                    })
+                    navController = navController
+                )
             }
         }
     }
 
     when (updateState) {
         is EditProfileViewModel.UpdateState.Success -> {
-            Log.d(TAG, "Update successful: ${(updateState as EditProfileViewModel.UpdateState.Success).user}")
+            Log.d(
+                TAG,
+                "Update successful: ${(updateState as EditProfileViewModel.UpdateState.Success).user}"
+            )
         }
+
         is EditProfileViewModel.UpdateState.Error -> {
-            Log.d(TAG, "Update error: ${(updateState as EditProfileViewModel.UpdateState.Error).message}")
+            Log.d(
+                TAG,
+                "Update error: ${(updateState as EditProfileViewModel.UpdateState.Error).message}"
+            )
         }
+
         else -> {}
     }
 }
@@ -151,7 +155,7 @@ fun CompanyCard(
     onCardClick: () -> Unit,
     jobOffers: Map<String, JobOffer>,
     user: User?,
-    onJobOfferApply: (User) -> Unit
+    navController: NavController
 ) {
     Card(modifier = Modifier
         .fillMaxWidth()
@@ -190,8 +194,7 @@ fun CompanyCard(
                             JobOfferCard(
                                 jobOfferId = jobOfferId,
                                 jobOffer = jobOffer,
-                                onJobOfferApply = onJobOfferApply,
-                                user = user
+                                navController = navController
                             )
                         }
                     }
@@ -204,15 +207,8 @@ fun CompanyCard(
 
 @Composable
 fun JobOfferCard(
-    jobOfferId: String, jobOffer: JobOffer, onJobOfferApply: (User) -> Unit, user: User?
+    jobOfferId: String, jobOffer: JobOffer, navController: NavController
 ) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-
-    var isPending by remember(user, jobOfferId) {
-        mutableStateOf(user?.pendingJobApplication?.containsKey(jobOfferId) == true)
-    }
-
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,22 +229,10 @@ fun JobOfferCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
-                Log.d(TAG, "Job offer button clicked, isPending: $isPending, user: $user, jobOfferId: $jobOfferId")
-                if (userId != null && user != null) {
-                    val updatedUser = user.copy(
-                        pendingJobApplication = if (isPending) {
-                            // Keeps the current list, do not do anything to it
-                            // You can only remove pending job apps from the edit profile page
-                            user.pendingJobApplication
-                        } else {
-                            (user.pendingJobApplication ?: emptyMap()) + (jobOfferId to jobOffer)
-                        }
-                    )
-                    onJobOfferApply(updatedUser)
-                    isPending = !isPending
-                }
-            },
-                enabled = !isPending) { Text(if (isPending) "Sudah Dilamar!" else "Lamar sekarang!") }
+                navController.navigate(Screen.ApplyJob.createRoute(jobOfferId))
+            }) {
+                Text("See job details")
+            }
         }
     }
 }

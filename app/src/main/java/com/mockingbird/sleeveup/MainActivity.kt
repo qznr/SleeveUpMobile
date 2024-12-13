@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mockingbird.sleeveup.navigation.Screen
+import com.mockingbird.sleeveup.screen.ApplyJobScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
 import com.mockingbird.sleeveup.screen.LandingScreen
@@ -60,6 +61,13 @@ fun AppNavigation() {
         ) { navBackStackEntry ->
             val userId = navBackStackEntry.arguments?.getString("userId") ?: "Guest"
             EditUserProfileScreen(navController = navController, userId = userId)
+        }
+        composable(
+            route = Screen.ApplyJob.route,
+            arguments = listOf(navArgument("jobId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+            val jobId = navBackStackEntry.arguments?.getString("jobId") ?: "Guest"
+            ApplyJobScreen(navController = navController, jobId = jobId)
         }
     }
 }
