@@ -25,7 +25,8 @@ class FirestoreService (private val firestore: FirebaseFirestore) {
                 "projects" to user.projects,
                 "certifications" to user.certifications,
                 "experiences" to user.experiences,
-                "pendingJobApplication" to user.pendingJobApplication
+                "pendingJobApplication" to user.pendingJobApplication,
+                "photoUrl" to user.photoUrl
             )
         ).await() }
     }

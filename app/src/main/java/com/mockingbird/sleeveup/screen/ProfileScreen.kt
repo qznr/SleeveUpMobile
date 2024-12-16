@@ -61,20 +61,26 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
 
     var user by remember { mutableStateOf<User?>(null) }
     var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var loadingImage by remember{mutableStateOf<ByteArray?>(null)}
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = userId) {
         scope.launch {
             try {
+                // Loading image so that it doesn't have to load a loading animation -zen
+                // Case: if the user image is deleted (by an admin or other means), instead of the
+                // app showing "Loading..." text, just show the placeholder image in the meantime -zen
+                loadingImage = storageService.fetchImage("placeholder.png")
+
                 val fetchedUser = userRepository.getUser(userId)
                 user = fetchedUser
                 var bytes: ByteArray? = null
+
                 if (!user?.photoUrl.isNullOrBlank()) {
                     bytes = storageService.fetchImage(user!!.photoUrl!!)
                     imageBytes = bytes
                 } else {
-                    bytes = storageService.fetchImage("placeholder.png")
-                    imageBytes = bytes
+                    imageBytes = loadingImage
                 }
             } catch (e: Exception) {
                 // Handle error, user not found, etc.
@@ -123,7 +129,14 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
                     modifier = Modifier.size(128.dp)
                 )
             } else {
-                Text("Loading image...")
+                // If the actual image has not been loaded, load a loading or temporary image first
+                // instead of showing "Loading..." text or an animation
+                // But if you want to change this to an animation then sure -zen
+                AsyncImage(
+                    model = loadingImage,
+                    contentDescription = "User profile picture",
+                    modifier = Modifier.size(128.dp)
+                )
             }
             Text(text = "Title: ${user?.title ?: "Isi dengan meng-edit profilmu!"}")
             Text(text = "Bio: ${user?.bio ?: "Isi dengan meng-edit profilmu!"}")
