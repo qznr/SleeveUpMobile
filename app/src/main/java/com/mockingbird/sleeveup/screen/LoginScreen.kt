@@ -46,7 +46,7 @@ fun LoginScreen(navController: NavController) {
     if (currentUser != null) {
         // User is already logged in. Navigate to Profile
         LaunchedEffect(Unit) {
-            navController.navigate(Screen.Profile.createRoute(currentUser.email ?: "")) {
+            navController.navigate(Screen.UserProfile.createRoute(currentUser.uid ?: "")) {
                 popUpTo(Screen.Login.route) {
                     inclusive = true // Remove Login from back stack
                 }

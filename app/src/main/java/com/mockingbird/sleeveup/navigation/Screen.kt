@@ -3,6 +3,9 @@ package com.mockingbird.sleeveup.navigation
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
+    object Jobs : Screen("jobs")
+    object Companies : Screen("companies")
+
     object Profile : Screen("profile/{email}") {
         fun createRoute(email: String) = "profile/$email"
     }
@@ -13,6 +16,6 @@ sealed class Screen(val route: String) {
         fun createRoute(userId: String) = "user_profile/$userId/edit"
     }
     object JobDetails : Screen("job_details/{jobId}"){
-        fun createRoute(jobId: String) = "apply_job/$jobId"
+        fun createRoute(jobId: String) = "job_details/$jobId"
     }
 }

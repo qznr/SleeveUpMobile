@@ -31,8 +31,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mockingbird.sleeveup.navigation.NavigationItem
 import com.mockingbird.sleeveup.navigation.Screen
-import com.mockingbird.sleeveup.screen.ApplyJobScreen
+import com.mockingbird.sleeveup.screen.CompanyScreen
+import com.mockingbird.sleeveup.screen.JobDetailsScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
+import com.mockingbird.sleeveup.screen.JobScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
 import com.mockingbird.sleeveup.screen.LandingScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
@@ -84,23 +86,23 @@ fun BottomAppBar(
         val navigationItems = listOf(
             NavigationItem(
                 title = "Loker",
-                icon = painterResource(id = R.drawable.baseline_loker_24), // Example using vector icon
-                screen = Screen.JobDetails // Assuming this is your home screen
+                icon = painterResource(id = R.drawable.baseline_loker_24),
+                screen = Screen.Jobs // Assuming this is your home screen
             ),
             NavigationItem(
-                title = "Perusahaan", // Replace with your string resource
-                icon = painterResource(id = R.drawable.baseline_perusahaan_24), // Example using vector icon
-                screen = Screen.Profile // Assuming this is your profile screen
+                title = "Perusahaan",
+                icon = painterResource(id = R.drawable.baseline_perusahaan_24),
+                screen = Screen.Companies
             ),
             NavigationItem(
-                title = "Event", // Replace with your string resource
-                icon = painterResource(id = R.drawable.baseline_event_24), // Example using vector icon
-                screen = Screen.Profile // Assuming this is your profile screen
+                title = "Event",
+                icon = painterResource(id = R.drawable.baseline_event_24),
+                screen = Screen.Profile
             ),
             NavigationItem(
-                title = "Profil", // Replace with your string resource
-                icon = painterResource(id = R.drawable.baseline_profil_24), // Example using vector icon
-                screen = Screen.UserProfile // Assuming this is your profile screen
+                title = "Profil",
+                icon = painterResource(id = R.drawable.baseline_profil_24),
+                screen = Screen.UserProfile
             ),
             // Add more navigation items as needed
         )
@@ -128,7 +130,6 @@ fun BottomAppBar(
                         }
                     )
                 },
-
                 selected = currentRoute == item.screen.route,
                 onClick = {
                     navController.navigate(item.screen.route) {
@@ -179,12 +180,25 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             EditUserProfileScreen(navController = navController, userId = userId)
         }
         composable(
+            route = Screen.Jobs.route,
+        ) {
+            bottomBarState.value = true
+            JobScreen(navController = navController)
+        }
+        composable(
+            route = Screen.Companies.route,
+        ) {
+            bottomBarState.value = true
+            CompanyScreen(navController = navController)
+        }
+        composable(
             route = Screen.JobDetails.route,
             arguments = listOf(navArgument("jobId"){type = NavType.StringType})
         ) { navBackStackEntry ->
             bottomBarState.value = true  // Show BottomBar
             val jobId = navBackStackEntry.arguments?.getString("jobId") ?: "Guest"
-            ApplyJobScreen(navController = navController, jobId = jobId)
+            JobDetailsScreen(navController = navController, jobId = jobId)
         }
+
     }
 }
