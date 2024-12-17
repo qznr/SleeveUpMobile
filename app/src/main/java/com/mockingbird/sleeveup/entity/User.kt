@@ -1,5 +1,7 @@
 package com.mockingbird.sleeveup.entity
 
+import com.google.rpc.Status
+
 data class User(
     val id: String? = "Guest",
     val name: String? = "Guest", // defaults as full name
@@ -11,6 +13,8 @@ data class User(
     val createdAt: Long = System.currentTimeMillis(),
     val lastSignInAt: Long = System.currentTimeMillis(),
     // For user profile sakes: Profile picture, full name, title, bio, projects, certificates, experiences
+    val gender: String? = null,
+    val status: String? = null,
     val displayName: String? = null,
     val title: String? = null,
     val bio: String? = null,

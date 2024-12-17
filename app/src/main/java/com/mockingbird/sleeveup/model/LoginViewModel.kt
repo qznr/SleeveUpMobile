@@ -32,8 +32,9 @@ class LoginViewModel(
 
                 task.addOnCompleteListener { authResult ->
                     if (authResult.isSuccessful) {
+                        val id = authResult.result?.user?.uid ?: ""
                         _loginState.value = LoginState.Success(authResult.result?.user)
-                        navController.navigate(Screen.Profile.createRoute(email))
+                        navController.navigate(Screen.UserProfile.createRoute(id))
                     } else {
                         _loginState.value =
                             LoginState.Error(authResult.exception?.message ?: "Unknown error")

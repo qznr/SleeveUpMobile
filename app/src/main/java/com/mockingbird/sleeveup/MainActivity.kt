@@ -35,6 +35,7 @@ import com.mockingbird.sleeveup.screen.CompanyDetailsScreen
 import com.mockingbird.sleeveup.screen.CompanyScreen
 import com.mockingbird.sleeveup.screen.JobDetailsScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
+import com.mockingbird.sleeveup.screen.EventScreen
 import com.mockingbird.sleeveup.screen.JobScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
@@ -155,6 +156,12 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
         composable(Screen.Register.route) {
             bottomBarState.value = false
             RegisterScreen(navController = navController)
+        }
+        composable(
+            route = Screen.Events.route,
+        ) {
+            bottomBarState.value = true
+            EventScreen(navController = navController)
         }
         composable(
             route = Screen.UserProfile.route,

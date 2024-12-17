@@ -45,7 +45,7 @@ class RegisterViewModel(
                 if (firebaseUser != null) {
                     val userWithId = newUser.copy(id = firebaseUser.uid)
                     saveUser(userWithId, firebaseUser.email ?: "")
-                    navController.navigate(Screen.Profile.createRoute(email))
+                    navController.navigate(Screen.UserProfile.createRoute(firebaseUser.uid))
                 } else {
                     _registrationState.value = RegistrationState.Error("Registration failed")
                 }

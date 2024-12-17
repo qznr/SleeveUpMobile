@@ -54,6 +54,7 @@ import com.mockingbird.sleeveup.repository.FirebaseUserRepository
 import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.service.StorageService
+import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, userId: String) {
@@ -67,7 +68,6 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
     val userRepository = FirebaseUserRepository(firestoreService)
     val storageService = StorageService()
 
-
     val viewModelFactory = remember(userRepository, storageService, userId) {
         ProfileViewModelFactory(userRepository, storageService, userId)
     }
@@ -78,7 +78,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
     val imageState by viewModel.imageState.collectAsState()
 
     Surface (
-        color = MaterialTheme.colorScheme.onSurface,
+        color = AlmostBlack,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -154,7 +154,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
                 Text(text = "Loading...")
             }
             is ProfileViewModel.ImageState.Success -> {
-                val imageBytes = (imageState as ProfileViewModel.ImageState.Success).imageBytes
+                val imageBytes = imageState.imageBytes
                 if (imageBytes != null) {
                     AsyncImage(
                         model = imageBytes,
@@ -165,13 +165,11 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
             }
             is ProfileViewModel.ImageState.Error -> {
                 val errorMessage =
-                    (imageState as ProfileViewModel.ImageState.Error).message
+                    imageState.message
                 Text("Error fetching profile image: $errorMessage")
             }
             else -> {}
         }
-
-
 
         Text(
             text = user.name ?: "",
@@ -248,7 +246,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
 
     }
 }
-
 
 @Composable
 fun ExpandableCard(

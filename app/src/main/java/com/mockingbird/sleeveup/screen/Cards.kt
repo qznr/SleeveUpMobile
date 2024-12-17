@@ -20,6 +20,7 @@ import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
 import androidx.compose.material3.*
 import androidx.compose.ui.text.font.FontWeight
+import com.mockingbird.sleeveup.entity.Event
 import com.mockingbird.sleeveup.navigation.Screen
 
 @Composable
@@ -108,6 +109,28 @@ fun JobOfferCard(
             }) {
                 Text("See job details")
             }
+        }
+    }
+}
+
+@Composable
+fun EventCard(event: Event, eventId: String, navController: NavController) {
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = event.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = event.description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = eventId) // Or whatever you want to show about the id
         }
     }
 }
