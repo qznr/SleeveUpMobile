@@ -22,8 +22,6 @@ import com.mockingbird.sleeveup.service.StorageService
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import kotlinx.coroutines.launch
 
-private const val TAG = "ApplyJobScreen"
-
 @Composable
 fun ApplyJobScreen(modifier: Modifier = Modifier, navController: NavController, jobId: String) {
     val apiService = ApiConfig.getApiService()

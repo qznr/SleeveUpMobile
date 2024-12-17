@@ -12,7 +12,7 @@ sealed class Screen(val route: String) {
     object EditUserProfile : Screen("user_profile/{userId}/edit") {
         fun createRoute(userId: String) = "user_profile/$userId/edit"
     }
-    object ApplyJob : Screen("apply_job/{jobId}"){
+    object JobDetails : Screen("job_details/{jobId}"){
         fun createRoute(jobId: String) = "apply_job/$jobId"
     }
 }

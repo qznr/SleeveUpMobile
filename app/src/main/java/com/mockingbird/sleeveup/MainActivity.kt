@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.mockingbird.sleeveup.navigation.NavigationItem
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.screen.ApplyJobScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
@@ -68,12 +69,6 @@ fun MainScreenView() {
     }
 }
 
-data class NavigationItem(
-    val title: String,
-    val icon: Painter, // Or ImageVector if using vector icons
-    val screen: Screen
-)
-
 @Composable
 fun BottomAppBar(
     navController: NavController,
@@ -90,7 +85,7 @@ fun BottomAppBar(
             NavigationItem(
                 title = "Loker",
                 icon = painterResource(id = R.drawable.baseline_loker_24), // Example using vector icon
-                screen = Screen.ApplyJob // Assuming this is your home screen
+                screen = Screen.JobDetails // Assuming this is your home screen
             ),
             NavigationItem(
                 title = "Perusahaan", // Replace with your string resource
@@ -184,7 +179,7 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             EditUserProfileScreen(navController = navController, userId = userId)
         }
         composable(
-            route = Screen.ApplyJob.route,
+            route = Screen.JobDetails.route,
             arguments = listOf(navArgument("jobId"){type = NavType.StringType})
         ) { navBackStackEntry ->
             bottomBarState.value = true  // Show BottomBar
