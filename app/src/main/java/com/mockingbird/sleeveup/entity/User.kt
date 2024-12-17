@@ -14,6 +14,8 @@ data class User(
     val displayName: String? = null,
     val title: String? = null,
     val bio: String? = null,
+    val lokasi: String? = null,
+    val education: String? = null,
     val projects: Map<String, String>? = null, // project title, project description
     val certifications: Map<String, String>? = null, // project title, project description
     val experiences: Map<String, String>? = null, // project title, project description
