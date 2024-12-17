@@ -1,5 +1,6 @@
 package com.mockingbird.sleeveup.model
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -112,6 +113,29 @@ class EditProfileViewModel(
             } catch (e: Exception) {
                 _pendingJobOfferStates.value[jobOfferId] =
                     PendingState.Error(e.message ?: "Failed to remove job application")
+            }
+        }
+    }
+
+    fun uploadImage(
+        imageUri: Uri, destinationPath: String, user: User, onComplete: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val success = storageService.uploadImage(imageUri, destinationPath)
+                if (success) {
+                    // If upload is success, just return the success message and the destinationPath,
+                    // the image is already on the server anyway so we just need to update user.photoUrl
+                    // via the viewModel -zen
+//                    val updatedUser = user.copy(photoUrl = destinationPath)
+//                    userRepository.updateUser(updatedUser)
+                    onComplete(true, destinationPath)
+                } else {
+                    onComplete(false, null)
+                }
+            } catch (e: Exception) {
+                Log.e("EditProfileViewModel", "Error uploading image", e)
+                onComplete(false, null)
             }
         }
     }
