@@ -95,12 +95,12 @@ fun BottomAppBar(
             NavigationItem(
                 title = "Perusahaan", // Replace with your string resource
                 icon = painterResource(id = R.drawable.baseline_perusahaan_24), // Example using vector icon
-                screen = Screen.UserProfile // Assuming this is your profile screen
+                screen = Screen.Profile // Assuming this is your profile screen
             ),
             NavigationItem(
                 title = "Event", // Replace with your string resource
                 icon = painterResource(id = R.drawable.baseline_event_24), // Example using vector icon
-                screen = Screen.UserProfile // Assuming this is your profile screen
+                screen = Screen.Profile // Assuming this is your profile screen
             ),
             NavigationItem(
                 title = "Profil", // Replace with your string resource
