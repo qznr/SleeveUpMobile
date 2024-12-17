@@ -40,6 +40,22 @@ fun LoginScreen(navController: NavController) {
         LoginViewModelFactory(authService, navController) // Create ViewModel Factory instance IMPORTANT
     val viewModel: LoginViewModel = viewModel(factory = viewModelFactory)
 
+    // **NEW: Check for existing user**
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val currentUser = firebaseAuth.currentUser
+    if (currentUser != null) {
+        // User is already logged in. Navigate to Profile
+        LaunchedEffect(Unit) {
+            navController.navigate(Screen.Profile.createRoute(currentUser.email ?: "")) {
+                popUpTo(Screen.Login.route) {
+                    inclusive = true // Remove Login from back stack
+                }
+            }
+        }
+        return // Exit the composable to prevent rendering login screen
+    }
+
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current

@@ -229,7 +229,7 @@ fun JobOfferCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
-                navController.navigate(Screen.ApplyJob.createRoute(jobOfferId))
+                navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
             }) {
                 Text("See job details")
             }

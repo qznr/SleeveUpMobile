@@ -15,8 +15,8 @@ interface ApiService {
     @GET("companies.json")
     suspend fun getCompanies(): Map<String, Company>
 
-//    @GET("job_offers.json")
-//    suspend fun getJobOffers(): Map<String, JobOffer>
+    @GET("job_offers.json")
+    suspend fun getJobOffers(): Map<String, JobOffer>
 
     @GET("companies/{companyId}.json")
     suspend fun getCompanyById(@Path("companyId") companyId: String): Company
