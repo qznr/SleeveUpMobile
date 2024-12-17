@@ -1,7 +1,17 @@
 package com.mockingbird.sleeveup.screen
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
 import com.mockingbird.sleeveup.factory.EditProfileViewModelFactory
@@ -22,6 +33,7 @@ import com.mockingbird.sleeveup.service.StorageService
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController, jobId: String) {
     val apiService = ApiConfig.getApiService()
@@ -37,6 +49,7 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
     val viewModel: EditProfileViewModel = viewModel(factory = viewModelFactory)
 
     var jobOffer by remember { mutableStateOf<JobOffer?>(null) }
+    var company by remember { mutableStateOf<Company?>(null) }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val userState by viewModel.userState.collectAsState()
     val pendingStates by viewModel.pendingJobOfferStates.collectAsState()
@@ -45,8 +58,11 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
         scope.launch {
             try {
                 jobOffer = apiService.getJobOfferById(jobId)
+                if (jobOffer != null) {
+                    company = apiService.getCompanyById(jobOffer!!.company_id)
+                }
             } catch (e: Exception) {
-                Log.e("API_TEST", "Error fetching job offer with id $jobId: ${e.message}")
+                Log.e("API_TEST", "Error fetching job offer or company with id $jobId: ${e.message}")
             }
         }
 
@@ -55,25 +71,42 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (jobOffer != null) {
-            JobOfferDetails(jobOffer = jobOffer!!,
-                user = if (userState is EditProfileViewModel.EditProfileState.Success) {
-                    (userState as EditProfileViewModel.EditProfileState.Success).user
-                } else null,
-                pendingState = pendingStates[jobId] ?: EditProfileViewModel.PendingState.Idle,
-                onApplyJob = { user, jobOffer ->
-                    if (userId != null && user != null) viewModel.updateJobApplication(
-                        user, jobId, jobOffer
-                    )
-                })
-        } else {
-            Text("Loading job offer details...")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Job Details") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Filled.ArrowBack, "backIcon")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (jobOffer != null && company != null) {
+                JobOfferDetails(
+                    jobOffer = jobOffer!!,
+                    company = company!!,
+                    user = if (userState is EditProfileViewModel.EditProfileState.Success) {
+                        (userState as EditProfileViewModel.EditProfileState.Success).user
+                    } else null,
+                    pendingState = pendingStates[jobId] ?: EditProfileViewModel.PendingState.Idle,
+                    onApplyJob = { user, jobOffer ->
+                        if (userId != null && user != null) viewModel.updateJobApplication(
+                            user, jobId, jobOffer
+                        )
+                    })
+            } else {
+                Text("Loading job offer details...")
+            }
         }
     }
 }
@@ -81,80 +114,176 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
 @Composable
 fun JobOfferDetails(
     jobOffer: JobOffer,
+    company: Company,
     user: User?,
     pendingState: EditProfileViewModel.PendingState,
     onApplyJob: (User?, JobOffer) -> Unit
 ) {
+    var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
+    var isFullDescriptionExpanded by remember { mutableStateOf(false) }
+    var isRequirementsExpanded by remember { mutableStateOf(false) }
+    var isBenefitsExpanded by remember { mutableStateOf(false) }
+
     val isPending = when (pendingState) {
         is EditProfileViewModel.PendingState.Success -> pendingState.isPending
         else -> false
     }
     val isLoading = pendingState is EditProfileViewModel.PendingState.Loading
-    Card(
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        // Job Offer Name
+        Text(
+            text = jobOffer.profession,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold
+        )
+        // Company Info
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                isCompanyDescriptionExpanded = !isCompanyDescriptionExpanded
+            }
         ) {
             Text(
-                text = jobOffer.profession,
+                text = company.name,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = jobOffer.description,
-                style = MaterialTheme.typography.bodyMedium,
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Expand Company Description",
+                modifier = Modifier
+                    .size(24.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-            Text(
-                text = "Full Description: ${jobOffer.full_description}",
-                style = MaterialTheme.typography.bodyMedium
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
+        AnimatedVisibility(
+            visible = isCompanyDescriptionExpanded,
+            enter = expandVertically(animationSpec = tween(300)),
+            exit = shrinkVertically(animationSpec = tween(300))
+        ) {
+            Column {
+                Text(
+                    text = company.email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+                Text(
+                    text = company.number,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+                Text(
+                    text = company.address,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+                Text(
+                    text = company.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+        }
 
-            Text(
-                text = "Salary: ${jobOffer.salary}", style = MaterialTheme.typography.bodyMedium
-            )
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Requirements: ${jobOffer.requirement}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Remote: ${jobOffer.is_remote}", style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Type: ${jobOffer.type}", style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Benefits: ${jobOffer.benefits}", style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    onApplyJob(user, jobOffer)
-                }, enabled = !isPending && !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    Text(if (isPending) "Sudah dilamar!" else "Lamar sekarang!")
+        // Job Full Description
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .clickable { isFullDescriptionExpanded = !isFullDescriptionExpanded }
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Full Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Expand Full Description",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
                 }
+                AnimatedVisibility(
+                    visible = isFullDescriptionExpanded,
+                    enter = expandVertically(animationSpec = tween(300)),
+                    exit = shrinkVertically(animationSpec = tween(300))
+                ) {
+                    Text(text = jobOffer.full_description, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
+        // Job Requirements
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .clickable { isRequirementsExpanded = !isRequirementsExpanded }
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Requirements", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Expand Requirements",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
+                AnimatedVisibility(
+                    visible = isRequirementsExpanded,
+                    enter = expandVertically(animationSpec = tween(300)),
+                    exit = shrinkVertically(animationSpec = tween(300))
+                ) {
+                    Text(text = jobOffer.requirement, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
+        // Job Benefits
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .clickable { isBenefitsExpanded = !isBenefitsExpanded }
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Benefits", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Expand Benefits",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
+                AnimatedVisibility(
+                    visible = isBenefitsExpanded,
+                    enter = expandVertically(animationSpec = tween(300)),
+                    exit = shrinkVertically(animationSpec = tween(300))
+                ) {
+                    Text(text = jobOffer.benefits, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                onApplyJob(user, jobOffer)
+            }, enabled = !isPending && !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Text(if (isPending) "Sudah dilamar!" else "Lamar sekarang!")
             }
         }
     }
