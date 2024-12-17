@@ -1,3 +1,4 @@
+// EditProfileViewModel.kt
 package com.mockingbird.sleeveup.model
 
 import android.net.Uri
@@ -6,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.mockingbird.sleeveup.entity.Certificate
+import com.mockingbird.sleeveup.entity.Experience
+import com.mockingbird.sleeveup.entity.Project
 import com.mockingbird.sleeveup.entity.User
 import com.mockingbird.sleeveup.repository.UserRepository
 import com.mockingbird.sleeveup.service.StorageService
@@ -13,10 +17,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import androidx.lifecycle.ViewModelProvider
 import com.mockingbird.sleeveup.entity.JobOffer
-import com.mockingbird.sleeveup.model.EditProfileViewModel
 
 class EditProfileViewModel(
     private val auth: FirebaseAuth,
@@ -124,11 +126,6 @@ class EditProfileViewModel(
             try {
                 val success = storageService.uploadImage(imageUri, destinationPath)
                 if (success) {
-                    // If upload is success, just return the success message and the destinationPath,
-                    // the image is already on the server anyway so we just need to update user.photoUrl
-                    // via the viewModel -zen
-//                    val updatedUser = user.copy(photoUrl = destinationPath)
-//                    userRepository.updateUser(updatedUser)
                     onComplete(true, destinationPath)
                 } else {
                     onComplete(false, null)

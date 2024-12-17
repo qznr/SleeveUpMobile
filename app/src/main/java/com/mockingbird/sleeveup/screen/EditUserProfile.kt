@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -46,7 +45,10 @@ import coil3.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.R
+import com.mockingbird.sleeveup.entity.Certificate
+import com.mockingbird.sleeveup.entity.Experience
 import com.mockingbird.sleeveup.entity.JobOffer
+import com.mockingbird.sleeveup.entity.Project
 import com.mockingbird.sleeveup.entity.User
 import com.mockingbird.sleeveup.factory.EditProfileViewModelFactory
 import com.mockingbird.sleeveup.model.EditProfileViewModel
@@ -71,13 +73,13 @@ fun EditUserProfileScreen(
 
     val userState by viewModel.userState.collectAsState()
 
-    var name by remember { mutableStateOf(TextFieldValue("")) }
-    var title by remember { mutableStateOf(TextFieldValue("")) }
-    var bio by remember { mutableStateOf(TextFieldValue("")) }
+    var name by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
     var imageDestinationPath: String? by remember { mutableStateOf(null) }
-    val projects = remember { mutableStateListOf<Pair<TextFieldValue, TextFieldValue>>() }
-    val certifications = remember { mutableStateListOf<Pair<TextFieldValue, TextFieldValue>>() }
-    val experiences = remember { mutableStateListOf<Pair<TextFieldValue, TextFieldValue>>() }
+    val projects = remember { mutableStateListOf<Project>() }
+    val certifications = remember { mutableStateListOf<Certificate>() }
+    val experiences = remember { mutableStateListOf<Experience>() }
     val pendingJobApplications = remember { mutableStateListOf<Pair<String, JobOffer>>() }
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -101,30 +103,22 @@ fun EditUserProfileScreen(
             val user = (userState as EditProfileViewModel.EditProfileState.Success).user
             // Initialize state with current user data
             LaunchedEffect(user) {
-                name = TextFieldValue(user.displayName ?: user.name ?: "")
-                title = TextFieldValue(user.title ?: "")
-                bio = TextFieldValue(user.bio ?: "")
+                name = user.displayName ?: user.name ?: ""
+                title = user.title ?: ""
+                bio = user.bio ?: ""
                 imageDestinationPath = null
 
                 projects.clear()
-                projects.addAll(user.projects?.map { (k, v) ->
-                    Pair(TextFieldValue(k), TextFieldValue(v))
-                } ?: emptyList())
+                projects.addAll(user.projects ?: emptyList())
 
                 certifications.clear()
-                certifications.addAll(user.certifications?.map { (k, v) ->
-                    Pair(TextFieldValue(k), TextFieldValue(v))
-                } ?: emptyList())
+                certifications.addAll(user.certifications ?: emptyList())
 
                 experiences.clear()
-                experiences.addAll(user.experiences?.map { (k, v) ->
-                    Pair(TextFieldValue(k), TextFieldValue(v))
-                } ?: emptyList())
+                experiences.addAll(user.experiences ?: emptyList())
 
                 pendingJobApplications.clear()
-                pendingJobApplications.addAll(user.pendingJobApplication?.map { (k, v) ->
-                    Pair(k, v)
-                } ?: emptyList())
+                pendingJobApplications.addAll(user.pendingJobApplication?.toList() ?: emptyList())
             }
 
             EditUserProfileContent(name = name,
@@ -149,6 +143,9 @@ fun EditUserProfileScreen(
                     experiences.addAll(list)
                 },
                 pendingJobApplications = pendingJobApplications,
+                onRemoveApplication = { jobOfferId ->
+                    user.let { viewModel.removeJobApplication(it, jobOfferId) }
+                },
                 imageDestinationPath = imageDestinationPath,
                 selectedImageUri = selectedImageUri,
                 onImageUploadClick = {
@@ -156,20 +153,19 @@ fun EditUserProfileScreen(
                     imagePickerLauncher.launch("image/*")
                 },
                 onSaveClick = {
-                    val updatedUser = User(id = user.id,
-                        name = name.text,
-                        displayName = name.text,
-                        title = title.text,
-                        bio = bio.text,
+                    val updatedUser = User(
+                        id = user.id,
+                        name = name,
+                        displayName = name,
+                        title = title,
+                        bio = bio,
                         photoUrl = if (imageDestinationPath == null) user.photoUrl else imageDestinationPath.toString(),
-                        projects = projects.filterNot { it.first.text.isBlank() && it.second.text.isBlank() }
-                            .associate { it.first.text to it.second.text },
-                        certifications = certifications.filterNot { it.first.text.isBlank() && it.second.text.isBlank() }
-                            .associate { it.first.text to it.second.text },
-                        experiences = experiences.filterNot { it.first.text.isBlank() && it.second.text.isBlank() }
-                            .associate { it.first.text to it.second.text },
+                        projects = projects.filterNot { it.name.isBlank() && it.description.isBlank() },
+                        certifications = certifications.filterNot { it.name.isBlank() },
+                        experiences = experiences.filterNot { it.name.isBlank() && it.description.isBlank() },
                         pendingJobApplication = pendingJobApplications.filterNot { it.first.isBlank() && it.second.description.isBlank() }
-                            .associate { it.first to it.second })
+                            .associate { it.first to it.second }
+                    )
                     viewModel.updateUser(updatedUser)
                 },
                 navController = navController,
@@ -219,19 +215,20 @@ fun EditUserProfileScreen(
 
 @Composable
 fun EditUserProfileContent(
-    name: TextFieldValue,
-    onNameChange: (TextFieldValue) -> Unit,
-    title: TextFieldValue,
-    onTitleChange: (TextFieldValue) -> Unit,
-    bio: TextFieldValue,
-    onBioChange: (TextFieldValue) -> Unit,
-    projects: SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>,
-    onProjectsChange: (SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>) -> Unit,
-    certifications: SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>,
-    onCertificationsChange: (SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>) -> Unit,
-    experiences: SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>,
-    onExperiencesChange: (SnapshotStateList<Pair<TextFieldValue, TextFieldValue>>) -> Unit,
+    name: String,
+    onNameChange: (String) -> Unit,
+    title: String,
+    onTitleChange: (String) -> Unit,
+    bio: String,
+    onBioChange: (String) -> Unit,
+    projects: SnapshotStateList<Project>,
+    onProjectsChange: (SnapshotStateList<Project>) -> Unit,
+    certifications: SnapshotStateList<Certificate>,
+    onCertificationsChange: (SnapshotStateList<Certificate>) -> Unit,
+    experiences: SnapshotStateList<Experience>,
+    onExperiencesChange: (SnapshotStateList<Experience>) -> Unit,
     pendingJobApplications: SnapshotStateList<Pair<String, JobOffer>>,
+    onRemoveApplication: (String) -> Unit,
     imageDestinationPath: String?,
     selectedImageUri: Uri?,
     onImageUploadClick: () -> Unit,
@@ -320,7 +317,7 @@ fun EditUserProfileContent(
             ) {
                 Text("Projects", style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = {
-                    projects.add(Pair(TextFieldValue(""), TextFieldValue("")))
+                    projects.add(Project(name = "", description = ""))
                 }) {
                     Icon(
                         imageVector = androidx.compose.material.icons.Icons.Filled.Add,
@@ -350,7 +347,7 @@ fun EditUserProfileContent(
             ) {
                 Text("Certifications", style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = {
-                    certifications.add(Pair(TextFieldValue(""), TextFieldValue("")))
+                    certifications.add(Certificate(name = ""))
                 }) {
                     Icon(
                         imageVector = androidx.compose.material.icons.Icons.Filled.Add,
@@ -382,7 +379,7 @@ fun EditUserProfileContent(
             ) {
                 Text("Experiences", style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = {
-                    experiences.add(Pair(TextFieldValue(""), TextFieldValue("")))
+                    experiences.add(Experience(name = "", description = "", role = "", startDate = ""))
                 }) {
                     Icon(
                         imageVector = androidx.compose.material.icons.Icons.Filled.Add,
@@ -417,9 +414,7 @@ fun EditUserProfileContent(
 
         itemsIndexed(pendingJobApplications) { index, application ->
             PendingApplicationItem(application = application, onRemoveApplication = {
-                if (pendingJobApplications.size > 0) {
-                    pendingJobApplications.removeAt(index)
-                }
+                onRemoveApplication(application.first)
             })
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -446,20 +441,44 @@ fun EditUserProfileContent(
 
 @Composable
 fun ProjectItem(
-    project: Pair<TextFieldValue, TextFieldValue>,
-    onProjectChange: (Pair<TextFieldValue, TextFieldValue>) -> Unit,
+    project: Project,
+    onProjectChange: (Project) -> Unit,
     onRemoveProject: () -> Unit
 ) {
     Column {
-        OutlinedTextField(value = project.first,
-            onValueChange = { onProjectChange(project.copy(first = it)) },
+        OutlinedTextField(value = project.name,
+            onValueChange = { onProjectChange(project.copy(name = it)) },
             label = { Text("Project Title") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(4.dp))
-        OutlinedTextField(value = project.second,
-            onValueChange = { onProjectChange(project.copy(second = it)) },
+        OutlinedTextField(value = project.description,
+            onValueChange = { onProjectChange(project.copy(description = it)) },
             label = { Text("Project Description") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = project.type ?: "",
+            onValueChange = { onProjectChange(project.copy(type = it)) },
+            label = { Text("Project Type") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = project.startDate ?: "",
+            onValueChange = { onProjectChange(project.copy(startDate = it)) },
+            label = { Text("Project Start Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = project.endDate ?: "",
+            onValueChange = { onProjectChange(project.copy(endDate = it)) },
+            label = { Text("Project End Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = project.link ?: "",
+            onValueChange = { onProjectChange(project.copy(link = it)) },
+            label = { Text("Project Link") },
             modifier = Modifier.fillMaxWidth()
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -475,22 +494,49 @@ fun ProjectItem(
 
 @Composable
 fun CertificationItem(
-    certification: Pair<TextFieldValue, TextFieldValue>,
-    onCertificationChange: (Pair<TextFieldValue, TextFieldValue>) -> Unit,
+    certification: Certificate,
+    onCertificationChange: (Certificate) -> Unit,
     onRemoveCertification: () -> Unit
 ) {
     Column {
         OutlinedTextField(
-            value = certification.first,
-            onValueChange = { onCertificationChange(certification.copy(first = it)) },
+            value = certification.name,
+            onValueChange = { onCertificationChange(certification.copy(name = it)) },
             label = { Text("Certification Title") },
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(
-            value = certification.second,
-            onValueChange = { onCertificationChange(certification.copy(second = it)) },
-            label = { Text("Certification Description") },
+            value = certification.type ?: "",
+            onValueChange = { onCertificationChange(certification.copy(type = it)) },
+            label = { Text("Certification Type") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = certification.startDate ?: "",
+            onValueChange = { onCertificationChange(certification.copy(startDate = it)) },
+            label = { Text("Certification Start Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = certification.link ?: "",
+            onValueChange = { onCertificationChange(certification.copy(link = it)) },
+            label = { Text("Certification Link") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = certification.skills?.joinToString(", ") ?: "",
+            onValueChange = {
+                onCertificationChange(certification.copy(skills = it.split(",").map { it.trim() }))
+            },
+            label = { Text("Certification Skills (comma-separated)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = certification.tools?.joinToString(", ") ?: "",
+            onValueChange = {
+                onCertificationChange(certification.copy(tools = it.split(",").map { it.trim() }))
+            },
+            label = { Text("Certification Tools (comma-separated)") },
             modifier = Modifier.fillMaxWidth()
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -506,22 +552,54 @@ fun CertificationItem(
 
 @Composable
 fun ExperienceItem(
-    experience: Pair<TextFieldValue, TextFieldValue>,
-    onExperienceChange: (Pair<TextFieldValue, TextFieldValue>) -> Unit,
+    experience: Experience,
+    onExperienceChange: (Experience) -> Unit,
     onRemoveExperience: () -> Unit
 ) {
     Column {
         OutlinedTextField(
-            value = experience.first,
-            onValueChange = { onExperienceChange(experience.copy(first = it)) },
+            value = experience.name,
+            onValueChange = { onExperienceChange(experience.copy(name = it)) },
             label = { Text("Experience Title") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(4.dp))
         OutlinedTextField(
-            value = experience.second,
-            onValueChange = { onExperienceChange(experience.copy(second = it)) },
+            value = experience.description,
+            onValueChange = { onExperienceChange(experience.copy(description = it)) },
             label = { Text("Experience Description") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = experience.role,
+            onValueChange = { onExperienceChange(experience.copy(role = it)) },
+            label = { Text("Experience Role") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = experience.startDate,
+            onValueChange = { onExperienceChange(experience.copy(startDate = it)) },
+            label = { Text("Experience Start Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = experience.endDate ?: "",
+            onValueChange = { onExperienceChange(experience.copy(endDate = it)) },
+            label = { Text("Experience End Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = experience.location ?: "",
+            onValueChange = { onExperienceChange(experience.copy(location = it)) },
+            label = { Text("Experience Location") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = experience.skills?.joinToString(", ") ?: "",
+            onValueChange = {
+                onExperienceChange(experience.copy(skills = it.split(",").map { it.trim() }))
+            },
+            label = { Text("Experience Skills (comma-separated)") },
             modifier = Modifier.fillMaxWidth()
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

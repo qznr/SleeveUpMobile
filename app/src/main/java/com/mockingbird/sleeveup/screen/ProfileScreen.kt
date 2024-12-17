@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,7 +46,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.R
+import com.mockingbird.sleeveup.entity.Certificate
+import com.mockingbird.sleeveup.entity.Experience
 import com.mockingbird.sleeveup.entity.JobOffer
+import com.mockingbird.sleeveup.entity.Project
 import com.mockingbird.sleeveup.entity.User
 import com.mockingbird.sleeveup.factory.ProfileViewModelFactory
 import com.mockingbird.sleeveup.model.ProfileViewModel
@@ -55,6 +59,8 @@ import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.service.StorageService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
+import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.White
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, userId: String) {
@@ -101,7 +107,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_logout_24),
                         contentDescription = stringResource(R.string.logout),
-                        tint = MaterialTheme.colorScheme.background
+                        tint = White
                     )
                 }
 
@@ -115,7 +121,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_edit_24),
                         contentDescription = stringResource(R.string.logout),
-                        tint = MaterialTheme.colorScheme.background
+                        tint = White
                     )
                 }
             }
@@ -175,9 +181,9 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
             text = user.name ?: "",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.background
+            color = White
         )
-        Text(text = user.title ?: "", style = MaterialTheme.typography.titleMedium, color =  MaterialTheme.colorScheme.background)
+        Text(text = user.title ?: "", style = MaterialTheme.typography.titleMedium, color =  White)
 
         Spacer(Modifier.height(8.dp))
 
@@ -186,62 +192,62 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
                 painterResource(id = R.drawable.baseline_location_on_24),
                 contentDescription = "Location",
                 modifier = Modifier.size(16.dp),
-                tint =  MaterialTheme.colorScheme.background
+                tint =  White
             )
             Spacer(Modifier.width(4.dp))
-            user.lokasi?.let { Text(it, color =  MaterialTheme.colorScheme.background) }
+            user.lokasi?.let { Text(it, color =  White) }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painterResource(id = R.drawable.baseline_loker_24),
                 contentDescription = "Education",
                 modifier = Modifier.size(16.dp),
-                tint =  MaterialTheme.colorScheme.background
+                tint =  White
             )
             Spacer(Modifier.width(4.dp))
-            user.education?.let { Text(it, color =  MaterialTheme.colorScheme.background) }
+            user.education?.let { Text(it, color =  White) }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        var isBioExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        var isBioExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
             title = "Tentang Saya",
-            content = { Text(user.bio ?: "Isi dengan meng-edit profilmu!", color = MaterialTheme.colorScheme.background) },
+            content = { Text(user.bio ?: "Isi dengan meng-edit profilmu!", color = White) },
             isExpanded = isBioExpanded,
             onExpandChange = { isBioExpanded = it },
-            textColor =  MaterialTheme.colorScheme.background
+            textColor =  MajorelieBlue,
         )
 
 
-        var isExperienceExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        var isExperienceExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
             title = "Pengalaman",
-            content = { DisplayUserCredentials(items = user.experiences, textColor = MaterialTheme.colorScheme.background) },
+            content = { DisplayUserCredentials(items = user.experiences, textColor = White) },
             isExpanded = isExperienceExpanded,
             onExpandChange = { isExperienceExpanded = it },
-            textColor =  MaterialTheme.colorScheme.background
+            textColor =  MajorelieBlue
         )
-        var isProjectExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        var isProjectExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
             title = "Proyek",
-            content = { DisplayUserCredentials(items = user.projects, textColor = MaterialTheme.colorScheme.background) },
+            content = { DisplayUserCredentials(items = user.projects, textColor = White) },
             isExpanded = isProjectExpanded,
             onExpandChange = { isProjectExpanded = it },
-            textColor =  MaterialTheme.colorScheme.background
+            textColor =  MajorelieBlue
         )
 
-        var isCertificationExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        var isCertificationExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
             title = "Sertifikasi",
-            content = { DisplayUserCredentials(items = user.certifications, textColor = MaterialTheme.colorScheme.background) },
+            content = { DisplayUserCredentials(items = user.certifications, textColor = White) },
             isExpanded = isCertificationExpanded,
             onExpandChange = { isCertificationExpanded = it },
-            textColor =  MaterialTheme.colorScheme.background
+            textColor =  MajorelieBlue
         )
 
         DisplayUserPendingApplications(
-            items = user.pendingJobApplication, textColor =  MaterialTheme.colorScheme.background
+            items = user.pendingJobApplication, textColor =  White
         )
 
     }
@@ -267,7 +273,7 @@ fun ExpandableCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable { onExpandChange(!isExpanded) }
             ) {
-                Text(text = title, fontWeight = FontWeight.Bold, color = textColor)
+                Text(text = title, fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.width(8.dp))
                 Icon(
                     imageVector = if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -282,7 +288,7 @@ fun ExpandableCard(
 }
 
 @Composable
-fun DisplayUserCredentials(items: Map<String, String>?, textColor: Color) {
+fun DisplayUserCredentials(items: Collection<*>?, textColor: Color) {
     if (items == null || items.isEmpty()) {
         Text(
             text = "Saat ini belum ada.",
@@ -291,14 +297,23 @@ fun DisplayUserCredentials(items: Map<String, String>?, textColor: Color) {
         )
     } else {
         Column {
-            items.forEach { (title, description) ->
-                Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                    Text(text = title, fontWeight = FontWeight.Bold, color = textColor)
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = description, color = textColor)
+            items.forEach { item ->
+                when (item) {
+                    is Project ->  UserCredentialItem(title = item.name, description = item.description, textColor = textColor)
+                    is Certificate -> UserCredentialItem(title = item.name, description = item.type ?: "", textColor = textColor)
+                    is Experience -> UserCredentialItem(title = item.name, description = item.description, textColor = textColor)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun UserCredentialItem(title: String, description: String, textColor: Color) {
+    Row(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(text = title, fontWeight = FontWeight.Bold, color = textColor)
+        Spacer(Modifier.width(8.dp))
+        Text(text = description, color = textColor)
     }
 }
 
