@@ -14,10 +14,10 @@ data class User(
     val lastSignInAt: Long = System.currentTimeMillis(),
     // For user profile sakes: Profile picture, full name, title, bio, projects, certificates, experiences
     val gender: String? = null,
-    val status: String? = null,
+    val status: String? = "Mencari Pekerjaan",
     val displayName: String? = null,
     val title: String? = null,
-    val bio: String? = null,
+    val bio: String? = "Haloo saya menggunakan SleeveUp!",
     val lokasi: String? = null,
     val education: String? = null,
     val projects: List<Project>? = null,

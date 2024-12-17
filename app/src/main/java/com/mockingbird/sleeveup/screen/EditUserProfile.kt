@@ -18,6 +18,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,9 +78,13 @@ fun EditUserProfileScreen(
     val userState by viewModel.userState.collectAsState()
 
     var name by remember { mutableStateOf("") }
-    var title by remember { mutableStateOf("") }
+    // Removed title
     var bio by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf<String?>(null) }
+    var status by remember { mutableStateOf<String?>(null) }
     var imageDestinationPath: String? by remember { mutableStateOf(null) }
+    var education by remember { mutableStateOf("") }
+    var lokasi by remember { mutableStateOf("") }
     val projects = remember { mutableStateListOf<Project>() }
     val certifications = remember { mutableStateListOf<Certificate>() }
     val experiences = remember { mutableStateListOf<Experience>() }
@@ -104,8 +112,12 @@ fun EditUserProfileScreen(
             // Initialize state with current user data
             LaunchedEffect(user) {
                 name = user.displayName ?: user.name ?: ""
-                title = user.title ?: ""
+                //  title = user.title ?: ""
                 bio = user.bio ?: ""
+                gender = user.gender
+                status = user.status
+                education = user.education ?: ""
+                lokasi = user.lokasi ?: ""
                 imageDestinationPath = null
 
                 projects.clear()
@@ -123,10 +135,18 @@ fun EditUserProfileScreen(
 
             EditUserProfileContent(name = name,
                 onNameChange = { name = it },
-                title = title,
-                onTitleChange = { title = it },
+                //title = title, //remove title
+                // onTitleChange = { title = it }, // remove title
                 bio = bio,
                 onBioChange = { bio = it },
+                gender = gender,
+                onGenderChange = {gender = it},
+                status = status,
+                onStatusChange = { status = it },
+                education = education,
+                onEducationChange = { education = it },
+                lokasi = lokasi,
+                onLokasiChange = { lokasi = it },
                 projects = projects,
                 onProjectsChange = { list ->
                     projects.clear()
@@ -157,8 +177,12 @@ fun EditUserProfileScreen(
                         id = user.id,
                         name = name,
                         displayName = name,
-                        title = title,
+                        // title = title, //remove title
                         bio = bio,
+                        gender = gender,
+                        status = status,
+                        education = education,
+                        lokasi = lokasi,
                         photoUrl = if (imageDestinationPath == null) user.photoUrl else imageDestinationPath.toString(),
                         projects = projects.filterNot { it.name.isBlank() && it.description.isBlank() },
                         certifications = certifications.filterNot { it.name.isBlank() },
@@ -213,14 +237,23 @@ fun EditUserProfileScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditUserProfileContent(
     name: String,
     onNameChange: (String) -> Unit,
-    title: String,
-    onTitleChange: (String) -> Unit,
+    //  title: String, //remove title
+    //  onTitleChange: (String) -> Unit, //remove title
     bio: String,
     onBioChange: (String) -> Unit,
+    gender: String?,
+    onGenderChange: (String?) -> Unit,
+    status: String?,
+    onStatusChange: (String?) -> Unit,
+    education: String,
+    onEducationChange: (String) -> Unit,
+    lokasi: String,
+    onLokasiChange: (String) -> Unit,
     projects: SnapshotStateList<Project>,
     onProjectsChange: (SnapshotStateList<Project>) -> Unit,
     certifications: SnapshotStateList<Certificate>,
@@ -237,6 +270,12 @@ fun EditUserProfileContent(
     uploadState: UploadState,
     onUpload: (Uri?) -> Unit
 ) {
+    val genderOptions = listOf("Male", "Female", "Other", "Prefer not to say")
+    var genderExpanded by remember { mutableStateOf(false) }
+    val statusOptions = listOf("Available", "Not Available")
+    var statusExpanded by remember { mutableStateOf(false) }
+
+
     var profileImageIsAlreadyUploadedSuccessfully by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -292,10 +331,81 @@ fun EditUserProfileContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
+            ExposedDropdownMenuBox(
+                expanded = genderExpanded,
+                onExpandedChange = { genderExpanded = !genderExpanded }
+            ) {
+                OutlinedTextField(
+                    value = gender ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Gender") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = genderExpanded,
+                    onDismissRequest = { genderExpanded = false }
+                ) {
+                    genderOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(text = option) },
+                            onClick = {
+                                onGenderChange(option)
+                                genderExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            ExposedDropdownMenuBox(
+                expanded = statusExpanded,
+                onExpandedChange = { statusExpanded = !statusExpanded }
+            ) {
+                OutlinedTextField(
+                    value = status ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Status") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = statusExpanded,
+                    onDismissRequest = { statusExpanded = false }
+                ) {
+                    statusOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(text = option) },
+                            onClick = {
+                                onStatusChange(option)
+                                statusExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
-                value = title,
-                onValueChange = onTitleChange,
-                label = { Text(text = "Title (e.g., Undergraduate in CS at X University)") },
+                value = education,
+                onValueChange = onEducationChange,
+                label = { Text(text = "Education") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = lokasi,
+                onValueChange = onLokasiChange,
+                label = { Text(text = "Lokasi") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))

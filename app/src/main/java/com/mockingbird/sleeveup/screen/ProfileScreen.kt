@@ -148,14 +148,14 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
 }
 
 @Composable
-fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
+fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when (imageState){
+        when (imageState) {
             is ProfileViewModel.ImageState.Loading -> {
                 Text(text = "Loading...")
             }
@@ -178,12 +178,15 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
         }
 
         Text(
-            text = user.name ?: "",
+            text = user.name ?: "No Name",  // Provide a default value
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = White
         )
-        Text(text = user.title ?: "", style = MaterialTheme.typography.titleMedium, color =  White)
+        // Text(text = user.title ?: "No Title", style = MaterialTheme.typography.titleMedium, color = White)
+        Text(text = user.gender ?: "No gender provided", style = MaterialTheme.typography.titleMedium, color = White)
+        Text(text = user.status ?: "No status provided", style = MaterialTheme.typography.titleMedium, color = White)
+
 
         Spacer(Modifier.height(8.dp))
 
@@ -192,20 +195,20 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
                 painterResource(id = R.drawable.baseline_location_on_24),
                 contentDescription = "Location",
                 modifier = Modifier.size(16.dp),
-                tint =  White
+                tint = White
             )
             Spacer(Modifier.width(4.dp))
-            user.lokasi?.let { Text(it, color =  White) }
+            Text(text = user.lokasi ?: "No Location Provided", color = White)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painterResource(id = R.drawable.baseline_loker_24),
                 contentDescription = "Education",
                 modifier = Modifier.size(16.dp),
-                tint =  White
+                tint = White
             )
             Spacer(Modifier.width(4.dp))
-            user.education?.let { Text(it, color =  White) }
+            Text(text = user.education ?: "No Education Provided", color = White)
         }
 
         Spacer(Modifier.height(16.dp))
@@ -213,12 +216,11 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
         var isBioExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
             title = "Tentang Saya",
-            content = { Text(user.bio ?: "Isi dengan meng-edit profilmu!", color = White) },
+            content = { Text(text = user.bio ?: "Isi dengan meng-edit profilmu!", color = White) }, // Provide default for Bio
             isExpanded = isBioExpanded,
             onExpandChange = { isBioExpanded = it },
-            textColor =  MajorelieBlue,
+            textColor = MajorelieBlue,
         )
-
 
         var isExperienceExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
@@ -226,7 +228,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
             content = { DisplayUserCredentials(items = user.experiences, textColor = White) },
             isExpanded = isExperienceExpanded,
             onExpandChange = { isExperienceExpanded = it },
-            textColor =  MajorelieBlue
+            textColor = MajorelieBlue
         )
         var isProjectExpanded by remember { mutableStateOf(false) }
         ExpandableCard(
@@ -234,7 +236,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
             content = { DisplayUserCredentials(items = user.projects, textColor = White) },
             isExpanded = isProjectExpanded,
             onExpandChange = { isProjectExpanded = it },
-            textColor =  MajorelieBlue
+            textColor = MajorelieBlue
         )
 
         var isCertificationExpanded by remember { mutableStateOf(false) }
@@ -243,11 +245,11 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
             content = { DisplayUserCredentials(items = user.certifications, textColor = White) },
             isExpanded = isCertificationExpanded,
             onExpandChange = { isCertificationExpanded = it },
-            textColor =  MajorelieBlue
+            textColor = MajorelieBlue
         )
 
         DisplayUserPendingApplications(
-            items = user.pendingJobApplication, textColor =  White
+            items = user.pendingJobApplication, textColor = White
         )
 
     }
@@ -299,9 +301,9 @@ fun DisplayUserCredentials(items: Collection<*>?, textColor: Color) {
         Column {
             items.forEach { item ->
                 when (item) {
-                    is Project ->  UserCredentialItem(title = item.name, description = item.description, textColor = textColor)
-                    is Certificate -> UserCredentialItem(title = item.name, description = item.type ?: "", textColor = textColor)
-                    is Experience -> UserCredentialItem(title = item.name, description = item.description, textColor = textColor)
+                    is Project ->  UserCredentialItem(title = item.name ?: "No Name", description = item.description ?: "No Description", textColor = textColor)
+                    is Certificate -> UserCredentialItem(title = item.name ?: "No Name", description = item.type ?: "No Type", textColor = textColor)
+                    is Experience -> UserCredentialItem(title = item.name ?: "No Name", description = item.description ?: "No Description", textColor = textColor)
                 }
             }
         }
@@ -327,7 +329,7 @@ fun DisplayUserPendingApplications(items: Map<String, JobOffer>?, textColor: Col
         )
     } else {
         items.forEach { (jobOfferId, jobOffer) ->
-            UserCredentialCard(title = jobOffer.profession, description = jobOffer.description)
+            UserCredentialCard(title = jobOffer.profession ?: "No Profession", description = jobOffer.description ?: "No Description") //Handles null values
         }
     }
 }
