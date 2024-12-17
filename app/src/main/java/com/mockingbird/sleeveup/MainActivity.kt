@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mockingbird.sleeveup.navigation.NavigationItem
 import com.mockingbird.sleeveup.navigation.Screen
+import com.mockingbird.sleeveup.screen.CompanyDetailsScreen
 import com.mockingbird.sleeveup.screen.CompanyScreen
 import com.mockingbird.sleeveup.screen.JobDetailsScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
@@ -199,6 +200,13 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             val jobId = navBackStackEntry.arguments?.getString("jobId") ?: "Guest"
             JobDetailsScreen(navController = navController, jobId = jobId)
         }
-
+        composable(
+            route = Screen.CompanyDetails.route,
+            arguments = listOf(navArgument("companyId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+            bottomBarState.value = true
+            val companyId = navBackStackEntry.arguments?.getString("companyId") ?: "Guest"
+            CompanyDetailsScreen(navController = navController, companyId = companyId)
+        }
     }
 }

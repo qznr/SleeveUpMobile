@@ -1,5 +1,6 @@
 package com.mockingbird.sleeveup.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,7 @@ import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.factory.CompanyViewModelFactory
 import com.mockingbird.sleeveup.model.CompanyViewModel
 import com.mockingbird.sleeveup.retrofit.ApiConfig
+import com.mockingbird.sleeveup.navigation.Screen
 
 @Composable
 fun CompanyScreen(navController: NavController) {
@@ -43,7 +45,7 @@ fun CompanyScreen(navController: NavController) {
             }
             is CompanyViewModel.CompaniesState.Success -> {
                 val companies = (companiesState as CompanyViewModel.CompaniesState.Success).companies
-                CompanyList(companies = companies)
+                CompanyList(companies = companies, navController = navController)
             }
             is CompanyViewModel.CompaniesState.Error -> {
                 val errorMessage =
@@ -58,20 +60,23 @@ fun CompanyScreen(navController: NavController) {
 }
 
 @Composable
-fun CompanyList(companies: Map<String, Company>) {
+fun CompanyList(companies: Map<String, Company>, navController: NavController) {
     LazyColumn(contentPadding = PaddingValues(all = 8.dp)) {
         items(companies.toList()) { (companyId, company) ->
-            CompanyCard(company = company, companyId = companyId)
+            CompanyCard(company = company, companyId = companyId, navController = navController)
         }
     }
 }
 
 @Composable
-fun CompanyCard(company: Company, companyId: String) {
+fun CompanyCard(company: Company, companyId: String, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .clickable {
+                navController.navigate(Screen.CompanyDetails.createRoute(companyId))
+            }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

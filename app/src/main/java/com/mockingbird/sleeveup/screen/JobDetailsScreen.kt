@@ -144,6 +144,7 @@ fun JobOfferDetails(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
             Button(
                 onClick = {
                     onApplyJob(user, jobOffer)
