@@ -1,3 +1,4 @@
+// app/src/main/java/com/mockingbird/sleeveup/screen/JobDetailsScreen.kt
 package com.mockingbird.sleeveup.screen
 
 import android.util.Log
@@ -25,8 +26,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
-import com.mockingbird.sleeveup.factory.EditProfileViewModelFactory
-import com.mockingbird.sleeveup.model.EditProfileViewModel
+import com.mockingbird.sleeveup.factory.JobDetailsViewModelFactory
+import com.mockingbird.sleeveup.model.JobDetailsViewModel
 import com.mockingbird.sleeveup.repository.FirebaseUserRepository
 import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.service.StorageService
@@ -42,34 +43,29 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
     val firestore = FirebaseFirestore.getInstance()
     val firestoreService = FirestoreService(firestore)
     val userRepository = FirebaseUserRepository(firestoreService)
-    val storageService = StorageService()
+
     val authService = FirebaseAuth.getInstance()
     val viewModelFactory =
-        EditProfileViewModelFactory(authService, userRepository, storageService, navController)
-    val viewModel: EditProfileViewModel = viewModel(factory = viewModelFactory)
+        JobDetailsViewModelFactory(apiService, userRepository, jobId)
+    val viewModel: JobDetailsViewModel = viewModel(factory = viewModelFactory)
 
-    var jobOffer by remember { mutableStateOf<JobOffer?>(null) }
-    var company by remember { mutableStateOf<Company?>(null) }
+
+    val jobOfferState by viewModel.jobOfferState.collectAsState()
+    val companyState by viewModel.companyState.collectAsState()
+    val pendingState by viewModel.pendingState.collectAsState()
+    var user by remember { mutableStateOf<User?>(null) }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
-    val userState by viewModel.userState.collectAsState()
-    val pendingStates by viewModel.pendingJobOfferStates.collectAsState()
 
-    LaunchedEffect(key1 = jobId) {
-        scope.launch {
-            try {
-                jobOffer = apiService.getJobOfferById(jobId)
-                if (jobOffer != null) {
-                    company = apiService.getCompanyById(jobOffer!!.company_id)
-                }
-            } catch (e: Exception) {
-                Log.e("API_TEST", "Error fetching job offer or company with id $jobId: ${e.message}")
-            }
-        }
-
+    LaunchedEffect(key1 = userId) {
         if (userId != null) {
-            viewModel.fetchUser(userId)
+            scope.launch {
+                user = userRepository.getUser(userId)
+                viewModel.fetchUserPendingState(user)
+            }
+
         }
     }
+
 
     Scaffold(
         topBar = {
@@ -91,21 +87,55 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (jobOffer != null && company != null) {
-                JobOfferDetails(
-                    jobOffer = jobOffer!!,
-                    company = company!!,
-                    user = if (userState is EditProfileViewModel.EditProfileState.Success) {
-                        (userState as EditProfileViewModel.EditProfileState.Success).user
-                    } else null,
-                    pendingState = pendingStates[jobId] ?: EditProfileViewModel.PendingState.Idle,
-                    onApplyJob = { user, jobOffer ->
-                        if (userId != null && user != null) viewModel.updateJobApplication(
-                            user, jobId, jobOffer
-                        )
-                    })
-            } else {
-                Text("Loading job offer details...")
+            when (jobOfferState) {
+                is JobDetailsViewModel.JobOfferState.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is JobDetailsViewModel.JobOfferState.Success -> {
+                    val jobOffer = (jobOfferState as JobDetailsViewModel.JobOfferState.Success).jobOffer
+
+                    when (companyState) {
+                        is JobDetailsViewModel.CompanyState.Loading -> {
+                            CircularProgressIndicator()
+                        }
+                        is JobDetailsViewModel.CompanyState.Success -> {
+                            val company = (companyState as JobDetailsViewModel.CompanyState.Success).company
+                            JobOfferDetails(
+                                jobOffer = jobOffer,
+                                company = company,
+                                user = user,
+                                pendingState = pendingState,
+                                onApplyJob = { user, jobOffer ->
+                                    if (user != null) viewModel.applyJob(
+                                        user, jobOffer
+                                    ) else {
+                                        Log.d("JobDetailsScreen", "user is null, please login")
+                                    }
+                                },
+                                onRemoveJob = { user ->
+                                    if(user != null) viewModel.removeJobApplication(user)
+                                }
+                            )
+                        }
+                        is JobDetailsViewModel.CompanyState.Error -> {
+                            val errorMessage =
+                                (companyState as JobDetailsViewModel.CompanyState.Error).message
+                            Text("Error fetching company details: $errorMessage")
+                        }
+                        else -> {
+                            Text("Waiting for company details...")
+                        }
+                    }
+
+                }
+                is JobDetailsViewModel.JobOfferState.Error -> {
+                    val errorMessage =
+                        (jobOfferState as JobDetailsViewModel.JobOfferState.Error).message
+                    Text("Error fetching job offer details: $errorMessage")
+                }
+                else -> {
+                    Text("Waiting for job offer details...")
+                }
             }
         }
     }
@@ -116,8 +146,9 @@ fun JobOfferDetails(
     jobOffer: JobOffer,
     company: Company,
     user: User?,
-    pendingState: EditProfileViewModel.PendingState,
-    onApplyJob: (User?, JobOffer) -> Unit
+    pendingState: JobDetailsViewModel.PendingState,
+    onApplyJob: (User?, JobOffer) -> Unit,
+    onRemoveJob: (User?) -> Unit
 ) {
     var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
     var isFullDescriptionExpanded by remember { mutableStateOf(false) }
@@ -125,11 +156,10 @@ fun JobOfferDetails(
     var isBenefitsExpanded by remember { mutableStateOf(false) }
 
     val isPending = when (pendingState) {
-        is EditProfileViewModel.PendingState.Success -> pendingState.isPending
+        is JobDetailsViewModel.PendingState.Success -> pendingState.isPending
         else -> false
     }
-    val isLoading = pendingState is EditProfileViewModel.PendingState.Loading
-
+    val isLoading = pendingState is JobDetailsViewModel.PendingState.Loading
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -272,18 +302,21 @@ fun JobOfferDetails(
             }
         }
 
-
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
-                onApplyJob(user, jobOffer)
-            }, enabled = !isPending && !isLoading
+                if (isPending) {
+                    onRemoveJob(user)
+                } else {
+                    onApplyJob(user, jobOffer)
+                }
+            }, enabled = !isLoading
         ) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Text(if (isPending) "Sudah dilamar!" else "Lamar sekarang!")
+                Text(if (isPending) "Batalkan Lamaran" else "Lamar sekarang!")
             }
         }
     }

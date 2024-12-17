@@ -25,11 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -48,62 +47,35 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
+import com.mockingbird.sleeveup.factory.ProfileViewModelFactory
+import com.mockingbird.sleeveup.model.ProfileViewModel
 import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.repository.FirebaseUserRepository
 import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.service.StorageService
-import kotlinx.coroutines.launch
-
-// Show and edit profile picture, full name, title, bio, projects, certificates, experiences
-// After submitting profile or applying for job offer, it goes to the profile with Pending response status
-// DO NOT REMOVE ABOVE COMMENT -zen
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, userId: String) {
     val context = LocalContext.current
-
     val authService = AuthService(FirebaseAuth.getInstance())
-
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
-
     val googleSignInClient = GoogleSignIn.getClient(context, gso)
-
     val firestore = FirebaseFirestore.getInstance()
     val firestoreService = FirestoreService(firestore)
     val userRepository = FirebaseUserRepository(firestoreService)
     val storageService = StorageService()
 
-    var user by remember { mutableStateOf<User?>(null) }
-    var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
-    var loadingImage by remember{mutableStateOf<ByteArray?>(null)}
-    val textColor = MaterialTheme.colorScheme.background
-    val iconColor = MaterialTheme.colorScheme.background
-    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = userId) {
-        scope.launch {
-            try {
-                // Loading image so that it doesn't have to load a loading animation -zen
-                // Case: if the user image is deleted (by an admin or other means), instead of the
-                // app showing "Loading..." text, just show the placeholder image in the meantime -zen
-                loadingImage = storageService.fetchImage("placeholder.png")
-                user = userRepository.getUser(userId)
-                //var bytes: ByteArray? = null
-
-                if (!user?.photoUrl.isNullOrBlank()) {
-                    imageBytes = storageService.fetchImage(user!!.photoUrl!!)
-                } else {
-                    imageBytes = loadingImage
-                }
-            } catch (e: Exception) {
-                // Handle error, user not found, etc.
-                println("Error fetching user: $e")
-                user = null
-            }
-        }
+    val viewModelFactory = remember(userRepository, storageService, userId) {
+        ProfileViewModelFactory(userRepository, storageService, userId)
     }
+
+    val viewModel: ProfileViewModel = viewModel(factory = viewModelFactory)
+
+    val userState by viewModel.userState.collectAsState()
+    val imageState by viewModel.imageState.collectAsState()
 
     Surface (
         color = MaterialTheme.colorScheme.onSurface,
@@ -129,7 +101,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_logout_24),
                         contentDescription = stringResource(R.string.logout),
-                        tint = iconColor
+                        tint = MaterialTheme.colorScheme.background
                     )
                 }
 
@@ -143,119 +115,140 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_edit_24),
                         contentDescription = stringResource(R.string.logout),
-                        tint = iconColor
+                        tint = MaterialTheme.colorScheme.background
                     )
                 }
-
-                /*Button(
-                    onClick = { navController.popBackStack(Screen.Profile.route, inclusive = false) }, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Back")
-                }*/
             }
 
-            if (user != null) {
-                // Profile Information Section
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (user != null) {
-                        // Profile Picture
-                        if (imageBytes != null) {
-                            AsyncImage(
-                                model = imageBytes,
-                                contentDescription = "User profile picture",
-                                modifier = Modifier.size(128.dp)
-                            )
-                        }
-                        Text(
-                            text = user?.name ?: "",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = textColor
-                        )
-                        Text(text = user?.title ?: "", style = MaterialTheme.typography.titleMedium, color = textColor)
-
-                        Spacer(Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painterResource(id = R.drawable.baseline_location_on_24),
-                                contentDescription = "Location",
-                                modifier = Modifier.size(16.dp),
-                                tint = iconColor
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            user?.lokasi?.let { Text(it, color = textColor) }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painterResource(id = R.drawable.baseline_loker_24),
-                                contentDescription = "Education",
-                                modifier = Modifier.size(16.dp),
-                                tint = iconColor
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            user?.education?.let { Text(it, color = textColor) }
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        // Bio, Experience, projects, certifications, and pending job applications in separate cards
-                        var isBioExpanded by remember { mutableStateOf(false) }
-                        ExpandableCard(
-                            title = "Tentang Saya",
-                            content = { Text(user?.bio ?: "Isi dengan meng-edit profilmu!", color = textColor) },
-                            isExpanded = isBioExpanded,
-                            onExpandChange = { isBioExpanded = it },
-                            textColor = textColor
-                        )
-
-
-                        var isExperienceExpanded by remember { mutableStateOf(false) }
-                        ExpandableCard(
-                            title = "Pengalaman",
-                            content = { DisplayUserCredentials(items = user?.experiences, textColor = textColor) },
-                            isExpanded = isExperienceExpanded,
-                            onExpandChange = { isExperienceExpanded = it },
-                            textColor = textColor
-                        )
-                        // Project (Expandable)
-                        var isProjectExpanded by remember { mutableStateOf(false) }
-                        ExpandableCard(
-                            title = "Proyek",
-                            content = { DisplayUserCredentials(items = user?.projects, textColor = textColor) },
-                            isExpanded = isProjectExpanded,
-                            onExpandChange = { isProjectExpanded = it },
-                            textColor = textColor
-                        )
-
-                        // Certifications (Expandable)
-                        var isCertificationExpanded by remember { mutableStateOf(false) }
-                        ExpandableCard(
-                            title = "Sertifikasi",
-                            content = { DisplayUserCredentials(items = user?.certifications, textColor = textColor) },
-                            isExpanded = isCertificationExpanded,
-                            onExpandChange = { isCertificationExpanded = it },
-                            textColor = textColor
-                        )
-
-                        // Assuming DisplayUserPendingApplications handles the display
-                        DisplayUserPendingApplications(
-                            items = user?.pendingJobApplication, textColor = textColor
-                        )
-
-                    } else {
-                        Text(text = "Loading user data...")
-                    }
+            when(userState){
+                is ProfileViewModel.ProfileState.Loading -> {
+                    Text(text = "Loading user data...")
+                }
+                is ProfileViewModel.ProfileState.Success -> {
+                    val user = (userState as ProfileViewModel.ProfileState.Success).user
+                    ProfileContent(user = user, imageState = imageState)
+                }
+                is ProfileViewModel.ProfileState.Error -> {
+                    val errorMessage = (userState as ProfileViewModel.ProfileState.Error).message
+                    Text(text = "Error: $errorMessage")
+                }
+                else -> {
+                    Text(text = "Initial state...")
                 }
             }
+
         }
     }
 }
+
+@Composable
+fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when (imageState){
+            is ProfileViewModel.ImageState.Loading -> {
+                Text(text = "Loading...")
+            }
+            is ProfileViewModel.ImageState.Success -> {
+                val imageBytes = (imageState as ProfileViewModel.ImageState.Success).imageBytes
+                if (imageBytes != null) {
+                    AsyncImage(
+                        model = imageBytes,
+                        contentDescription = "User profile picture",
+                        modifier = Modifier.size(128.dp)
+                    )
+                }
+            }
+            is ProfileViewModel.ImageState.Error -> {
+                val errorMessage =
+                    (imageState as ProfileViewModel.ImageState.Error).message
+                Text("Error fetching profile image: $errorMessage")
+            }
+            else -> {}
+        }
+
+
+
+        Text(
+            text = user.name ?: "",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.background
+        )
+        Text(text = user.title ?: "", style = MaterialTheme.typography.titleMedium, color =  MaterialTheme.colorScheme.background)
+
+        Spacer(Modifier.height(8.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                painterResource(id = R.drawable.baseline_location_on_24),
+                contentDescription = "Location",
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.background
+            )
+            Spacer(Modifier.width(4.dp))
+            user.lokasi?.let { Text(it, color =  MaterialTheme.colorScheme.background) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                painterResource(id = R.drawable.baseline_loker_24),
+                contentDescription = "Education",
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.background
+            )
+            Spacer(Modifier.width(4.dp))
+            user.education?.let { Text(it, color =  MaterialTheme.colorScheme.background) }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        var isBioExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        ExpandableCard(
+            title = "Tentang Saya",
+            content = { Text(user.bio ?: "Isi dengan meng-edit profilmu!", color = MaterialTheme.colorScheme.background) },
+            isExpanded = isBioExpanded,
+            onExpandChange = { isBioExpanded = it },
+            textColor =  MaterialTheme.colorScheme.background
+        )
+
+
+        var isExperienceExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        ExpandableCard(
+            title = "Pengalaman",
+            content = { DisplayUserCredentials(items = user.experiences, textColor = MaterialTheme.colorScheme.background) },
+            isExpanded = isExperienceExpanded,
+            onExpandChange = { isExperienceExpanded = it },
+            textColor =  MaterialTheme.colorScheme.background
+        )
+        var isProjectExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        ExpandableCard(
+            title = "Proyek",
+            content = { DisplayUserCredentials(items = user.projects, textColor = MaterialTheme.colorScheme.background) },
+            isExpanded = isProjectExpanded,
+            onExpandChange = { isProjectExpanded = it },
+            textColor =  MaterialTheme.colorScheme.background
+        )
+
+        var isCertificationExpanded by remember { androidx.compose.runtime.mutableStateOf(false) }
+        ExpandableCard(
+            title = "Sertifikasi",
+            content = { DisplayUserCredentials(items = user.certifications, textColor = MaterialTheme.colorScheme.background) },
+            isExpanded = isCertificationExpanded,
+            onExpandChange = { isCertificationExpanded = it },
+            textColor =  MaterialTheme.colorScheme.background
+        )
+
+        DisplayUserPendingApplications(
+            items = user.pendingJobApplication, textColor =  MaterialTheme.colorScheme.background
+        )
+
+    }
+}
+
 
 @Composable
 fun ExpandableCard(
@@ -291,9 +284,6 @@ fun ExpandableCard(
     }
 }
 
-// Here, "credentials" mean a user's competence i.e. what is their past projects, experiences, and certifications
-// DO NOT REMOVE ABOVE COMMENT -zen
-
 @Composable
 fun DisplayUserCredentials(items: Map<String, String>?, textColor: Color) {
     if (items == null || items.isEmpty()) {
@@ -303,12 +293,12 @@ fun DisplayUserCredentials(items: Map<String, String>?, textColor: Color) {
             color = textColor
         )
     } else {
-        Column {  // Tambahkan Column untuk menyusun item secara vertikal
+        Column {
             items.forEach { (title, description) ->
-                Row(modifier = Modifier.padding(vertical = 4.dp)) { // Tambahkan padding vertikal di sini
-                    Text(text = title, fontWeight = FontWeight.Bold)
+                Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Text(text = title, fontWeight = FontWeight.Bold, color = textColor)
                     Spacer(Modifier.width(8.dp))
-                    Text(text = description)
+                    Text(text = description, color = textColor)
                 }
             }
         }
