@@ -40,22 +40,6 @@ fun LoginScreen(navController: NavController) {
         LoginViewModelFactory(authService, navController) // Create ViewModel Factory instance IMPORTANT
     val viewModel: LoginViewModel = viewModel(factory = viewModelFactory)
 
-    // **NEW: Check for existing user**
-    val firebaseAuth = FirebaseAuth.getInstance()
-    val currentUser = firebaseAuth.currentUser
-    if (currentUser != null) {
-        // User is already logged in. Navigate to Profile
-        LaunchedEffect(Unit) {
-            navController.navigate(Screen.UserProfile.createRoute(currentUser.uid ?: "")) {
-                popUpTo(Screen.Login.route) {
-                    inclusive = true // Remove Login from back stack
-                }
-            }
-        }
-        return // Exit the composable to prevent rendering login screen
-    }
-
-
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -66,13 +50,12 @@ fun LoginScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         viewModel.handleSignInResult(result) { firebaseUser ->
             if (firebaseUser != null) {
-                navController.navigate(Screen.Profile.createRoute(firebaseUser.email ?: ""))
+                navController.navigate(Screen.UserProfile.createRoute(firebaseUser.uid ?: ""))
             } else {
                 scope.launch {
                     snackbarHostState.showSnackbar("Google Sign In Failed")

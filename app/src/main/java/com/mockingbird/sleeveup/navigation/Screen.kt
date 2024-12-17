@@ -5,6 +5,7 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object Jobs : Screen("jobs")
     object Companies : Screen("companies")
+    object Events : Screen("events")
     object Profile : Screen("profile/{email}") {
         fun createRoute(email: String) = "profile/$email"
     }

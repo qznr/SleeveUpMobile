@@ -1,6 +1,7 @@
 package com.mockingbird.sleeveup.retrofit
 
 import com.mockingbird.sleeveup.entity.Company
+import com.mockingbird.sleeveup.entity.Event
 import com.mockingbird.sleeveup.entity.JobOffer
 import okhttp3.MultipartBody
 import okhttp3.Response
@@ -12,17 +13,24 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-    @GET("companies.json")
-    suspend fun getCompanies(): Map<String, Company>
 
     @GET("job_offers.json")
     suspend fun getJobOffers(): Map<String, JobOffer>
 
-    @GET("companies/{companyId}.json")
-    suspend fun getCompanyById(@Path("companyId") companyId: String): Company
+    @GET("companies.json")
+    suspend fun getCompanies(): Map<String, Company>
+
+    @GET("events.json")
+    suspend fun getEvents(): Map<String, Event>
 
     @GET("job_offers/{jobOfferId}.json")
     suspend fun getJobOfferById(@Path("jobOfferId") jobOfferId: String): JobOffer
+
+    @GET("companies/{companyId}.json")
+    suspend fun getCompanyById(@Path("companyId") companyId: String): Company
+
+    @GET("events/{eventId}.json")
+    suspend fun getEventById(@Path("eventId") eventId: String): Event
 
     @GET("job_offers.json")
     suspend fun getJobOffersByCompanyId(

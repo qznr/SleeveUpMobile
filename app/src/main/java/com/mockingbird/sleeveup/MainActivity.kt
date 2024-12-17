@@ -37,7 +37,6 @@ import com.mockingbird.sleeveup.screen.JobDetailsScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
 import com.mockingbird.sleeveup.screen.JobScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
-import com.mockingbird.sleeveup.screen.LandingScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
 import com.mockingbird.sleeveup.screen.RegisterScreen // Import RegisterScreen
 import com.mockingbird.sleeveup.ui.theme.SleeveUpTheme
@@ -98,7 +97,7 @@ fun BottomAppBar(
             NavigationItem(
                 title = "Event",
                 icon = painterResource(id = R.drawable.baseline_event_24),
-                screen = Screen.Profile
+                screen = Screen.Events
             ),
             NavigationItem(
                 title = "Profil",
@@ -156,14 +155,6 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
         composable(Screen.Register.route) {
             bottomBarState.value = false
             RegisterScreen(navController = navController)
-        }
-        composable(
-            route = Screen.Profile.route,
-            arguments = listOf(navArgument("email"){type = NavType.StringType})
-        ) { navBackStackEntry ->
-            bottomBarState.value = true  // Show BottomBar
-            val email = navBackStackEntry.arguments?.getString("email") ?: "Guest"
-            LandingScreen(navController, email)
         }
         composable(
             route = Screen.UserProfile.route,

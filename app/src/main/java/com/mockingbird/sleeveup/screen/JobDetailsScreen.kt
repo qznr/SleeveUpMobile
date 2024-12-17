@@ -44,7 +44,6 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
     val firestoreService = FirestoreService(firestore)
     val userRepository = FirebaseUserRepository(firestoreService)
 
-    val authService = FirebaseAuth.getInstance()
     val viewModelFactory =
         JobDetailsViewModelFactory(apiService, userRepository, jobId)
     val viewModel: JobDetailsViewModel = viewModel(factory = viewModelFactory)

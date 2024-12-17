@@ -69,7 +69,7 @@ fun RegisterScreen(navController: NavController) {
     ) { result ->
         viewModel.handleSignInResult(result) { firebaseUser ->
             if (firebaseUser != null) {
-                navController.navigate(Screen.Profile.createRoute(firebaseUser.email ?: ""))
+                navController.navigate(Screen.UserProfile.createRoute(firebaseUser.uid ?: ""))
             } else {
                 scope.launch {
                     snackbarHostState.showSnackbar("Google Sign In Failed")
