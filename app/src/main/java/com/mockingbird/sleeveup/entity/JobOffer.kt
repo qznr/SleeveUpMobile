@@ -11,5 +11,6 @@ data class JobOffer(
     val profession: String = "",
     val company_name: String = "",
     val company_img: String = "",
-    val company_id: String = ""
+    val company_id: String = "",
+    val education: String = ""
 )
