@@ -55,28 +55,3 @@ fun JobOfferCard(
         }
     }
 }
-
-@Composable
-fun EventCard(event: Event, eventId: String, navController: NavController) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .clickable {
-            navController.navigate(Screen.EventDetails.createRoute(eventId))
-        }) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = event.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = event.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = eventId) // Or whatever you want to show about the id
-        }
-    }
-}

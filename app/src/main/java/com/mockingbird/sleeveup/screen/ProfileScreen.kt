@@ -302,7 +302,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isBioExpanded,
             onExpandChange = { isBioExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,  // Pastikan ini true jika ingin menampilkan tombol edit
+            showEditButton = false,  // Pastikan ini true jika ingin menampilkan tombol edit
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
@@ -325,7 +325,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isExperienceExpanded,
             onExpandChange = { isExperienceExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,
+            showEditButton = false,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
@@ -347,7 +347,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isProjectExpanded,
             onExpandChange = { isProjectExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,
+            showEditButton = false,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
@@ -370,7 +370,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isCertificationExpanded,
             onExpandChange = { isCertificationExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,
+            showEditButton = false,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
