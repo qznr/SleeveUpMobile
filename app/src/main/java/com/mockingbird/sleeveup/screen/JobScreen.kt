@@ -20,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,12 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.factory.JobViewModelFactory
 import com.mockingbird.sleeveup.model.JobViewModel
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import com.mockingbird.sleeveup.navigation.Screen
+import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.Moonstone
@@ -47,6 +53,12 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobScreen(navController: NavController) {
+    val context = LocalContext.current
+    val authService = AuthService(FirebaseAuth.getInstance())
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
     val apiService = ApiConfig.getApiService()
     val viewModelFactory = JobViewModelFactory(apiService)
     val viewModel: JobViewModel = viewModel(factory = viewModelFactory)
@@ -68,17 +80,17 @@ fun JobScreen(navController: NavController) {
             ) {
                 Text( // Title on the left
                     text = "Lowongan Kerja",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = White
                 )
                 IconButton(
                     onClick = {
-                        /*authService.signOut()
+                        authService.signOut()
                         authService.signOutGoogle(googleSignInClient).addOnCompleteListener {
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
-                        }*/
+                        }
                     }
                 ) {
                     Icon(
@@ -195,54 +207,47 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            // Company Logo (if available)
-            if (jobOffer.company_img.isNotBlank()) { // Check if image URL exists
-                AsyncImage(
-                    model = jobOffer.company_img,
-                    contentDescription = "Company Logo",
-                    modifier = Modifier.size(48.dp),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-            } else { // Menampilkan placeholder jika imageBytes null
-                Icon(
-                    imageVector = Icons.Default.Person, // Atau ikon lain yang sesuai
-                    contentDescription = "Placeholder profile picture",
-                    modifier = Modifier
-                        .size(128.dp)
-                        .clip(RectangleShape)
-                        .background(Color.Gray), // Warna latar belakang placeholder
-                    tint = White // Warna ikon
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Placeholder profile picture",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Gray),
+                tint = White
+            )
 
-            Column(modifier = Modifier.weight(1f)) {
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = jobOffer.profession,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MajorelieBlue
                 )
                 Text(
                     text = jobOffer.company_name,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = White
                 )
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .width(8.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start // Align items to the start
                 ) {
                     if (jobOffer.salary.isNotBlank()) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_payments_24),
                             contentDescription = "Salary",
-                            tint = White,
-                            modifier = Modifier.size(16.dp)
+                            tint = Gray,
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -254,16 +259,15 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 }
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .width(8.dp),
-                    horizontalArrangement = Arrangement.Start // Align items to the start
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     if (jobOffer.education.isNotBlank()) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_school_24),
                             contentDescription = "Education",
-                            tint = White,
-                            modifier = Modifier.size(16.dp)
+                            tint = Gray,
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -276,15 +280,13 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .width(16.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Remote/Onsite status (if available)
                         Surface(
                             shape = RoundedCornerShape(16.dp),
                             color = if (jobOffer.is_remote == "yes") Moonstone else TickleMePink, // Conditional color
@@ -293,37 +295,37 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                             Text(
                                 text = if (jobOffer.is_remote == "yes") "Remote" else "On-site",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Black,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                color = AlmostBlack,
+                                modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
                             )
                         }
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = Moonstone, // Conditional color
-                            modifier = Modifier.padding(vertical = 2.dp) // small vertical padding
+                            color = Moonstone,
+                            modifier = Modifier.padding(vertical = 2.dp)
                         ) {
                             Text(
                                 text = jobOffer.type ?: "No info",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Black,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                color = AlmostBlack,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                             )
                         }
                     }
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .width(8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+
                     Button(
                         onClick = {
                             navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
-                        }
+                        },
+                        shape = MaterialTheme.shapes.small,
+                        colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(text = "Detail", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            text = "Detail",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = White,
+                        )
                     }
                 }
             }

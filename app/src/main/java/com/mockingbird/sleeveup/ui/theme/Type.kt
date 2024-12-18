@@ -52,7 +52,7 @@ val Typography = Typography(
 
     // Android-button (14 Medium)
     labelLarge = TextStyle(
-        fontFamily = RobotoFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
     ),

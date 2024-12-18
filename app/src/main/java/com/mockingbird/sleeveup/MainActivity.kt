@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,8 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -35,12 +39,16 @@ import com.mockingbird.sleeveup.screen.CompanyDetailsScreen
 import com.mockingbird.sleeveup.screen.CompanyScreen
 import com.mockingbird.sleeveup.screen.JobDetailsScreen
 import com.mockingbird.sleeveup.screen.EditUserProfileScreen
+import com.mockingbird.sleeveup.screen.EventDetailsScreen
 import com.mockingbird.sleeveup.screen.EventScreen
 import com.mockingbird.sleeveup.screen.JobScreen
 import com.mockingbird.sleeveup.screen.LoginScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
 import com.mockingbird.sleeveup.screen.RegisterScreen // Import RegisterScreen
+import com.mockingbird.sleeveup.ui.theme.AlmostBlack
+import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.SleeveUpTheme
+import com.mockingbird.sleeveup.ui.theme.White
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,14 +89,16 @@ fun BottomAppBar(
     val currentRoute = currentBackStackEntry?.destination?.route
 
     NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.onBackground, // Or your desired color
+        modifier = modifier.shadow(
+            elevation = 8.dp,
+        ),
+        containerColor = AlmostBlack,
     ) {
         val navigationItems = listOf(
             NavigationItem(
                 title = "Loker",
                 icon = painterResource(id = R.drawable.baseline_loker_24),
-                screen = Screen.Jobs // Assuming this is your home screen
+                screen = Screen.Jobs
             ),
             NavigationItem(
                 title = "Perusahaan",
@@ -105,7 +115,6 @@ fun BottomAppBar(
                 icon = painterResource(id = R.drawable.baseline_profil_24),
                 screen = Screen.UserProfile
             ),
-            // Add more navigation items as needed
         )
 
         navigationItems.forEach { item ->
@@ -115,9 +124,9 @@ fun BottomAppBar(
                         painter = item.icon,
                         contentDescription = item.title,
                         tint = if (currentRoute == item.screen.route) {
-                            MaterialTheme.colorScheme.primary // Selected color
+                            MajorelieBlue
                         } else {
-                            MaterialTheme.colorScheme.onPrimary // Unselected color
+                            White
                         }
                     )
                 },
@@ -125,10 +134,11 @@ fun BottomAppBar(
                     Text(
                         item.title,
                         color = if (currentRoute == item.screen.route) {
-                            MaterialTheme.colorScheme.primary
+                            MajorelieBlue
                         } else {
-                            MaterialTheme.colorScheme.onPrimary
-                        }
+                            White
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 },
                 selected = currentRoute == item.screen.route,
@@ -140,12 +150,18 @@ fun BottomAppBar(
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MajorelieBlue,
+                    unselectedIconColor = White,
+                    selectedTextColor = MajorelieBlue,
+                    unselectedTextColor = White,
+                    indicatorColor = AlmostBlack
+                )
             )
         }
     }
 }
-
 @Composable
 fun AppNavigation(navController: NavHostController, bottomBarState: MutableState<Boolean>) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {
@@ -172,6 +188,14 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             ProfileScreen(navController = navController, userId = userId)
         }
         composable(
+            route = Screen.EditUserProfile.route,
+            arguments = listOf(navArgument("userId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+            bottomBarState.value = true  // Show BottomBar
+            val userId = navBackStackEntry.arguments?.getString("userId") ?: "Guest"
+            EditUserProfileScreen(navController = navController, userId = userId)
+        }
+        composable(
             route = Screen.Jobs.route,
         ) {
             bottomBarState.value = true
@@ -190,6 +214,14 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             bottomBarState.value = true  // Show BottomBar
             val jobId = navBackStackEntry.arguments?.getString("jobId") ?: "Guest"
             JobDetailsScreen(navController = navController, jobId = jobId)
+        }
+        composable(
+            route = Screen.EventDetails.route,
+            arguments = listOf(navArgument("eventId"){type = NavType.StringType})
+        ) { navBackStackEntry ->
+            bottomBarState.value = true
+            val eventId = navBackStackEntry.arguments?.getString("eventId") ?: "Guest"
+            EventDetailsScreen(navController = navController, eventId = eventId)
         }
         composable(
             route = Screen.CompanyDetails.route,

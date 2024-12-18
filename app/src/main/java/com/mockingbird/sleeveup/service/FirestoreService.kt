@@ -16,18 +16,23 @@ class FirestoreService (private val firestore: FirebaseFirestore) {
     }
 
     suspend fun updateUser(user: User) {
-        user.id?.let { usersCollection.document(it).update(
-            mapOf(
-                "name" to user.name,
-                "displayName" to user.displayName,
-                "title" to user.title,
-                "bio" to user.bio,
-                "projects" to user.projects,
-                "certifications" to user.certifications,
-                "experiences" to user.experiences,
-                "pendingJobApplication" to user.pendingJobApplication,
-                "photoUrl" to user.photoUrl
-            )
-        ).await() }
+        user.id?.let {
+            usersCollection.document(it).update(
+                mapOf(
+                    "name" to user.name,
+                    "displayName" to user.displayName,
+                    "bio" to user.bio,
+                    "gender" to user.gender,
+                    "status" to user.status,
+                    "education" to user.education,
+                    "lokasi" to user.lokasi,
+                    "projects" to user.projects,
+                    "certifications" to user.certifications,
+                    "experiences" to user.experiences,
+                    "pendingJobApplication" to user.pendingJobApplication,
+                    "photoUrl" to user.photoUrl
+                )
+            ).await()
+        }
     }
 }

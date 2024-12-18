@@ -23,63 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.mockingbird.sleeveup.entity.Event
 import com.mockingbird.sleeveup.navigation.Screen
 
-@Composable
-fun CompanyCard(
-    companyId: String,
-    company: Company,
-    isExpanded: Boolean,
-    onCardClick: () -> Unit,
-    jobOffers: Map<String, JobOffer>,
-    user: User?,
-    navController: NavController
-) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .clickable { onCardClick() }) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = company.name,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = companyId,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = company.description,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(animationSpec = tween(300)),
-                exit = shrinkVertically(animationSpec = tween(300))
-            ) {
-                Column {
-                    if (jobOffers.isEmpty()) {
-                        Text(text = "No jobs offers for this company yet!")
-                    } else {
-                        jobOffers.toList().forEach { (jobOfferId, jobOffer) ->
-                            JobOfferCard(
-                                jobOfferId = jobOfferId,
-                                jobOffer = jobOffer,
-                                navController = navController
-                            )
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun JobOfferCard(

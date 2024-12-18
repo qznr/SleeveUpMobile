@@ -116,8 +116,8 @@ fun EditUserProfileScreen(
                 bio = user.bio ?: ""
                 gender = user.gender
                 status = user.status
-                education = user.education ?: ""
-                lokasi = user.lokasi ?: ""
+                education = user.education.toString()
+                lokasi = user.lokasi.toString()
                 imageDestinationPath = null
 
                 projects.clear()
@@ -177,7 +177,6 @@ fun EditUserProfileScreen(
                         id = user.id,
                         name = name,
                         displayName = name,
-                        // title = title, //remove title
                         bio = bio,
                         gender = gender,
                         status = status,
@@ -242,8 +241,6 @@ fun EditUserProfileScreen(
 fun EditUserProfileContent(
     name: String,
     onNameChange: (String) -> Unit,
-    //  title: String, //remove title
-    //  onTitleChange: (String) -> Unit, //remove title
     bio: String,
     onBioChange: (String) -> Unit,
     gender: String?,
@@ -360,8 +357,6 @@ fun EditUserProfileContent(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-
-
             ExposedDropdownMenuBox(
                 expanded = statusExpanded,
                 onExpandedChange = { statusExpanded = !statusExpanded }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,12 +56,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.factory.CompanyViewModelFactory
 import com.mockingbird.sleeveup.model.CompanyViewModel
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import com.mockingbird.sleeveup.navigation.Screen
+import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.White
@@ -67,6 +73,12 @@ import com.mockingbird.sleeveup.ui.theme.White
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompanyScreen(navController: NavController) {
+    val context = LocalContext.current
+    val authService = AuthService(FirebaseAuth.getInstance())
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id)).requestEmail().build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
     val apiService = ApiConfig.getApiService()
     val viewModelFactory = CompanyViewModelFactory(apiService)
     val viewModel: CompanyViewModel = viewModel(factory = viewModelFactory)
@@ -88,17 +100,17 @@ fun CompanyScreen(navController: NavController) {
             ) {
                 Text( // Title on the left
                     text = "Perusahaan",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = White
                 )
                 IconButton(
                     onClick = {
-                        /*authService.signOut()
+                        authService.signOut()
                         authService.signOutGoogle(googleSignInClient).addOnCompleteListener {
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
-                        }*/
+                        }
                     }
                 ) {
                     Icon(
@@ -136,10 +148,10 @@ fun CompanyScreen(navController: NavController) {
                             cursorColor = White,
                             containerColor = White,
                             unfocusedPlaceholderColor = White,
-                            focusedTextColor = AlmostBlack// Placeholder color
+                            focusedTextColor = AlmostBlack
                         ),
                         textStyle = MaterialTheme.typography.bodyMedium,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), // Handle search action
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
                                 println("Searching for: $searchText")
@@ -219,8 +231,8 @@ fun CompanyCard(company: Company, companyId: String, navController: NavControlle
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Company Logo (if available)
-            if (company.img.isNotBlank()) { // Check if image URL exists
+
+            if (company.img.isNotBlank()) {
                 AsyncImage(
                     model = company.img,
                     contentDescription = "Company Logo",
@@ -228,28 +240,28 @@ fun CompanyCard(company: Company, companyId: String, navController: NavControlle
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-            } else { // Menampilkan placeholder jika imageBytes null
+            } else {
                 Icon(
-                    imageVector = Icons.Default.Person, // Atau ikon lain yang sesuai
+                    imageVector = Icons.Default.Person,
                     contentDescription = "Placeholder profile picture",
                     modifier = Modifier
                         .size(128.dp)
                         .clip(RectangleShape)
-                        .background(Color.Gray), // Warna latar belakang placeholder
-                    tint = White // Warna ikon
+                        .background(Color.Gray),
+                    tint = White
                 )
             }
 
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
                     text = company.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MajorelieBlue
                 )
                 Text(
                     text = company.description,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = White,
                     maxLines = 5,
                     overflow = TextOverflow.Ellipsis
@@ -264,9 +276,11 @@ fun CompanyCard(company: Company, companyId: String, navController: NavControlle
                     Button(
                         onClick = {
                             navController.navigate(Screen.CompanyDetails.createRoute(companyId))
-                        }
+                        },
+                        shape = MaterialTheme.shapes.small,
+                        colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
                     ) {
-                        Text(text = "Detail", style = MaterialTheme.typography.labelLarge)
+                        Text(text = "Detail", style = MaterialTheme.typography.labelLarge, color = White)
                     }
                 }
             }

@@ -92,7 +92,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
             ) {
                 Text( // Title on the left
                     text = "Profil", // Assuming you have a string resource for "Profil"
-                    style = MaterialTheme.typography.headlineMedium, // Or any appropriate style
+                    style = MaterialTheme.typography.headlineSmall, // Or any appropriate style
                     color = White
                 )
                 IconButton(
@@ -156,7 +156,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
                     is ProfileViewModel.ImageState.Loading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.size(128.dp),
-                            color = White // Atau warna lain yang sesuai
+                            color = White
                         )
                     }
                     is ProfileViewModel.ImageState.Success -> {
@@ -167,32 +167,31 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
                                 contentDescription = "User profile picture",
                                 modifier = Modifier
                                     .size(128.dp)
-                                    .clip(CircleShape), // Menambahkan clip untuk bentuk lingkaran
-                                contentScale = ContentScale.Crop // Memastikan gambar dipotong agar sesuai dengan lingkaran
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
-                        } else { // Menampilkan placeholder jika imageBytes null
+                        } else {
                             Icon(
-                                imageVector = Icons.Default.Person, // Atau ikon lain yang sesuai
+                                imageVector = Icons.Default.Person,
                                 contentDescription = "Placeholder profile picture",
                                 modifier = Modifier
                                     .size(128.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Gray), // Warna latar belakang placeholder
-                                tint = White // Warna ikon
+                                    .background(Color.Gray),
+                                tint = White
                             )
 
                         }
                     }
                     is ProfileViewModel.ImageState.Error -> {
-                        // ... (kode error handling)
                         Icon(
-                            imageVector = Icons.Default.Person, // Atau ikon lain yang sesuai
+                            imageVector = Icons.Default.Person,
                             contentDescription = "Placeholder profile picture",
                             modifier = Modifier
                                 .size(128.dp)
                                 .clip(CircleShape)
-                                .background(Color.Gray), // Warna latar belakang placeholder
-                            tint = White // Warna ikon
+                                .background(Color.Gray),
+                            tint = White
                         )
                     }
                     else -> {}
