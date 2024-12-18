@@ -5,12 +5,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -38,6 +44,7 @@ import com.mockingbird.sleeveup.ui.theme.White
 import java.text.NumberFormat
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobScreen(navController: NavController) {
     val apiService = ApiConfig.getApiService()
@@ -45,6 +52,7 @@ fun JobScreen(navController: NavController) {
     val viewModel: JobViewModel = viewModel(factory = viewModelFactory)
 
     val jobOffersState by viewModel.jobOffersState.collectAsState()
+    var searchText by remember { mutableStateOf("") }
 
     Surface (
         color = AlmostBlack,
@@ -80,9 +88,67 @@ fun JobScreen(navController: NavController) {
                     )
                 }
             }
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.End, // Align filter to the end
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
+                        placeholder = { Text("Cari...", color = Color.LightGray) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_search_24),
+                                contentDescription = "Search Icon",
+                                tint = MajorelieBlue
+                            )
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp)),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = White,
+                            unfocusedBorderColor = MajorelieBlue,
+                            cursorColor = White,
+                            containerColor = White,
+                            unfocusedPlaceholderColor = White,
+                            focusedTextColor = AlmostBlack// Placeholder color
+                        ),
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), // Handle search action
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                println("Searching for: $searchText")
+                            }
+                        ),
+                        singleLine = true // Make it a single line input
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Filter Button
+                    IconButton(onClick = { /* TODO: Filter functionality */ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.outline_filter_alt_24),
+                            contentDescription = "Filter",
+                            tint = White,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MajorelieBlue) // Light background
+                                .size(32.dp) // increase Size
+                        )
+                    }
+                }
+            }
+
             Column(modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)) {
+                .padding(16.dp))
+            {
                 when (jobOffersState) {
                     is JobViewModel.JobOffersState.Loading -> {
                         CircularProgressIndicator()
@@ -212,7 +278,9 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().width(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .width(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -247,7 +315,9 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                     }
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth().width(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .width(8.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
