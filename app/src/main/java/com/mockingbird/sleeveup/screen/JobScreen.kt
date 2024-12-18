@@ -67,8 +67,8 @@ fun JobScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically // Align items vertically
             ) {
                 Text( // Title on the left
-                    text = "Lowongan Kerja", // Assuming you have a string resource for "Profil"
-                    style = MaterialTheme.typography.headlineMedium, // Or any appropriate style
+                    text = "Lowongan Kerja",
+                    style = MaterialTheme.typography.headlineMedium,
                     color = White
                 )
                 IconButton(
@@ -184,14 +184,11 @@ fun JobList(jobOffers: Map<String, JobOffer>, navController: NavController) {
     }
 }
 
-
 @Composable
 fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(8.dp),
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(

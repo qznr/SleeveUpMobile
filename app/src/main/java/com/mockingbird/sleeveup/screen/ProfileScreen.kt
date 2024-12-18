@@ -368,7 +368,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandableCard(
     title: String,

@@ -65,7 +65,6 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
