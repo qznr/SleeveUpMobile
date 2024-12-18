@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -225,7 +226,7 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 4.dp) // Optional padding
+            modifier = Modifier.padding(top = 4.dp), // Optional padding
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
@@ -257,34 +258,47 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
 
         Spacer(Modifier.height(8.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painterResource(id = R.drawable.baseline_location_on_24),
-                contentDescription = "Location",
-                modifier = Modifier.size(16.dp),
-                tint = White
-            )
-            Spacer(Modifier.width(4.dp))
-            Text(text = user.lokasi ?: "No Location Provided", color = White)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painterResource(id = R.drawable.baseline_loker_24),
-                contentDescription = "Education",
-                modifier = Modifier.size(16.dp),
-                tint = White
-            )
-            Spacer(Modifier.width(4.dp))
-            Text(text = user.education ?: "No Education Provided", color = White)
+        Column(horizontalAlignment = Alignment.Start) {
+            Row( verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(id = R.drawable.baseline_location_on_24),
+                    contentDescription = "Location",
+                    modifier = Modifier.size(24.dp),
+                    tint = White
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = user.lokasi ?: "No Location Provided",
+                    color = White,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(id = R.drawable.baseline_loker_24),
+                    contentDescription = "Education",
+                    modifier = Modifier.size(24.dp),
+                    tint = White
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = user.education ?: "No Education Provided",
+                    color = White,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
 
         var isBioExpanded by remember { mutableStateOf(false) }
+        val isBioExpandable = (user.bio?.length ?: 0) > 50
         ExpandableCard(
             title = "Tentang Saya",
-            previewContent = { Text(text = (user.bio ?: "Isi dengan meng-edit profilmu!").take(50), color = White) }, // Preview 50 karakter pertama
-            fullContent = { Text(text = user.bio ?: "Isi dengan meng-edit profilmu!", color = White) },
+            previewContent = {
+                Text(text = (user.bio ?: "Isi dengan meng-edit profilmu!").take(50), color = White, style = MaterialTheme.typography.bodyMedium, overflow = TextOverflow.Ellipsis) },
+            fullContent = { Text(text = user.bio ?: "Isi dengan meng-edit profilmu!", color = White, style = MaterialTheme.typography.bodyMedium) },
             isExpanded = isBioExpanded,
             onExpandChange = { isBioExpanded = it },
             color = MajorelieBlue,
@@ -295,10 +309,12 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
                 // Menampilkan dialog edit
                 // dll.
                 //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            }
+            },
+            isExpandable = isBioExpandable
         )
 
         var isExperienceExpanded by remember { mutableStateOf(false) }
+        val isExperienceExpandable = (user.experiences?.size ?: 0) > 2
         ExpandableCard(
             title = "Pengalaman",
             previewContent = {
@@ -309,16 +325,18 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isExperienceExpanded,
             onExpandChange = { isExperienceExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,  // Pastikan ini true jika ingin menampilkan tombol edit
+            showEditButton = true,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
                 // Menampilkan dialog edit
                 // dll.
                 //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            }
+            },
+            isExpandable = isExperienceExpandable
         )
         var isProjectExpanded by remember { mutableStateOf(false) }
+        val isProjectExpandable = (user.projects?.size ?: 0) > 2
         ExpandableCard(
             title = "Proyek",
             previewContent = {
@@ -329,39 +347,54 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             isExpanded = isProjectExpanded,
             onExpandChange = { isProjectExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,  // Pastikan ini true jika ingin menampilkan tombol edit
+            showEditButton = true,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
                 // Menampilkan dialog edit
                 // dll.
                 //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            }
+            },
+            isExpandable = isProjectExpandable
         )
 
         var isCertificationExpanded by remember { mutableStateOf(false) }
+        val isCertificationExpandable = (user.certifications?.size ?: 0) > 2
         ExpandableCard(
             title = "Sertifikasi",
             previewContent = {
-                val certificateToShow = user.experiences?.take(2) ?: emptyList() // Menampilkan maksimal 2 pengalaman
+                val certificateToShow = user.certifications?.take(2) ?: emptyList() // Menampilkan maksimal 2 pengalaman
                 DisplayUserCredentials(items = certificateToShow, textColor = White)
             },
             fullContent = { DisplayUserCredentials(items = user.certifications, textColor = White) },
             isExpanded = isCertificationExpanded,
             onExpandChange = { isCertificationExpanded = it },
             color = MajorelieBlue,
-            showEditButton = true,  // Pastikan ini true jika ingin menampilkan tombol edit
+            showEditButton = true,
             onEditClick = {
                 // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
                 // Navigasi ke layar edit profil
                 // Menampilkan dialog edit
                 // dll.
                 //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            }
+            },
+            isExpandable = isCertificationExpandable
         )
 
-        DisplayUserPendingApplications(
-            items = user.pendingJobApplication, textColor = White
+        var isApplicationExpanded by remember { mutableStateOf(false) }
+        val isApplicationExpandable = (user.pendingJobApplication?.size ?: 0) > 0
+        ExpandableCard(
+            title = "Lamaran Kerja",
+            previewContent = {
+                Text(text = if (user.pendingJobApplication.isNullOrEmpty()) "Tidak ada lamaran yang tertunda" else "Ada ${user.pendingJobApplication?.size} lamaran yang tertunda", color = White, style = MaterialTheme.typography.bodyMedium)
+            },
+            fullContent = {
+                DisplayUserPendingApplications(items = user.pendingJobApplication, textColor = White)
+            },
+            isExpanded = isApplicationExpanded,
+            onExpandChange = { isApplicationExpanded = it },
+            color = MajorelieBlue,
+            isExpandable = isApplicationExpandable
         )
 
     }
@@ -376,19 +409,20 @@ fun ExpandableCard(
     onExpandChange: (Boolean) -> Unit,
     showEditButton: Boolean = true,
     onEditClick: (() -> Unit)? = null,
-    color: Color
+    color: Color,
+    isExpandable: Boolean = true // New parameter
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.background)
+        border = BorderStroke(1.dp, Color.Gray)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween, // Mengatur space di antara elemen
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -396,7 +430,7 @@ fun ExpandableCard(
                     fontWeight = FontWeight.Bold,
                     color = MajorelieBlue,
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.weight(1f) // Memberi bobot pada judul agar mengisi sisa ruang
+                    modifier = Modifier.weight(1f)
                 )
 
                 if (showEditButton && onEditClick != null) {
@@ -410,42 +444,51 @@ fun ExpandableCard(
                 }
             }
 
-            Column(horizontalAlignment = Alignment.Start) { // Tambahkan Column untuk membungkus konten
+            Column(horizontalAlignment = Alignment.Start) {
                 if (!isExpanded) {
                     previewContent()
+                    Spacer(Modifier.height(8.dp))
                     HorizontalDivider(
                         modifier = Modifier.padding(top = 4.dp),
                         thickness = 1.dp,
                         color = White.copy(alpha = 0.5f)
                     )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically, // Vertikal alignment
-                        horizontalArrangement = Arrangement.Start // Horizontal alignment
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Lihat Selengkapnya",
-                            tint = White,
-                            modifier = Modifier.size(24.dp) // Ubah ukuran icon jika perlu
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        TextButton(onClick = { onExpandChange(true) }) {
-                            Text(
-                                "Lihat Selengkapnya",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = White
+                    if(isExpandable){
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically, // Vertikal alignment
+                            horizontalArrangement = Arrangement.Start // Horizontal alignment
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Lihat Selengkapnya",
+                                tint = White,
+                                modifier = Modifier.size(24.dp) // Ubah ukuran icon jika perlu
                             )
+                            Spacer(Modifier.width(4.dp))
+                            TextButton(onClick = { onExpandChange(true) }) {
+                                Text(
+                                    "Lihat Selengkapnya",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = White
+                                )
+                            }
                         }
                     }
                 } else {
                     fullContent()
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 4.dp),
+                        thickness = 1.dp,
+                        color = White.copy(alpha = 0.5f)
+                    )
                 }
             }
 
             // Tombol panah ditampilkan di bawah full content saat expanded
-            if (isExpanded) {
+            if (isExpanded && isExpandable) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     IconButton(onClick = { onExpandChange(false) }) {
                         Icon(
@@ -469,24 +512,102 @@ fun DisplayUserCredentials(items: Collection<*>?, textColor: Color) {
     } else {
         Column {
             safeItems.forEach { item ->
-                when (item) {
-                    is Project -> UserCredentialItem(title = item.name ?: "No Name", description = item.description ?: "No Description", textColor = textColor)
-                    is Certificate -> UserCredentialItem(title = item.name ?: "No Name", description = item.type ?: "No Type", textColor = textColor)
-                    is Experience -> UserCredentialItem(title = item.name ?: "No Name", description = item.description ?: "No Description", textColor = textColor)
-                    // Tambahkan penanganan tipe data lain jika ada
-                    else -> {}
-                }
+                UserCredentialItem(item = item, textColor = textColor)
             }
         }
     }
 }
 
 @Composable
-fun UserCredentialItem(title: String, description: String, textColor: Color) {
-    Row(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(text = title, fontWeight = FontWeight.Bold, color = textColor)
-        Spacer(Modifier.width(8.dp))
-        Text(text = description, color = textColor)
+fun UserCredentialItem(item: Any?, textColor: Color) {
+    when (item) {
+        is Project -> ProjectCredentialItem(project = item, textColor = textColor)
+        is Certificate -> CertificateCredentialItem(certificate = item, textColor = textColor)
+        is Experience -> ExperienceCredentialItem(experience = item, textColor = textColor)
+        else -> {
+            Text("Invalid Data", color = textColor)
+        }
+    }
+}
+
+@Composable
+fun ProjectCredentialItem(project: Project, textColor: Color) {
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(text = project.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.width(4.dp))
+        project.description?.let {
+            Text(text = it, color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        project.type?.let {
+            Text(text = "Type: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        project.startDate?.let {
+            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        project.endDate?.let {
+            Text(text = "End Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        project.link?.let {
+            Text(text = "Link: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+
+    }
+}
+
+
+@Composable
+fun CertificateCredentialItem(certificate: Certificate, textColor: Color) {
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(text = certificate.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.width(4.dp))
+        certificate.type?.let {
+            Text(text = "Type: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        certificate.startDate?.let {
+            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        certificate.link?.let {
+            Text(text = "Link: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        certificate.skills?.let { skills ->
+            if (skills.isNotEmpty()) {
+                Text(text ="Skills: ${skills.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        certificate.tools?.let { tools ->
+            if (tools.isNotEmpty()) {
+                Text(text = "Tools: ${tools.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+
+    }
+}
+
+@Composable
+fun ExperienceCredentialItem(experience: Experience, textColor: Color) {
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(text = experience.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.width(4.dp))
+        experience.description?.let {
+            Text(text = it, color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        experience.role?.let {
+            Text(text = "Role: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        experience.location?.let {
+            Text(text = "Location: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        experience.startDate?.let {
+            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        experience.endDate?.let {
+            Text(text = "End Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        }
+        experience.skills?.let { skills ->
+            if (skills.isNotEmpty()) {
+                Text(text = "Skills: ${skills.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
 
@@ -499,8 +620,13 @@ fun DisplayUserPendingApplications(items: Map<String, JobOffer>?, textColor: Col
             color = textColor
         )
     } else {
-        items.forEach { (jobOfferId, jobOffer) ->
-            UserCredentialCard(title = jobOffer.profession ?: "No Profession", description = jobOffer.description ?: "No Description") //Handles null values
+        Column {
+            items.forEach { (_, jobOffer) ->
+                UserCredentialCard(
+                    title = jobOffer.profession ?: "No Profession",
+                    description = jobOffer.description ?: "No Description"
+                )
+            }
         }
     }
 }

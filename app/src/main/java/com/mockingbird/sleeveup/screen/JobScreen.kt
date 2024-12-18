@@ -1,6 +1,7 @@
 package com.mockingbird.sleeveup.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -200,7 +201,10 @@ fun JobList(jobOffers: Map<String, JobOffer>, navController: NavController) {
 fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(
@@ -311,21 +315,6 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                             )
                         }
-                    }
-
-                    Button(
-                        onClick = {
-                            navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
-                        },
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(
-                            text = "Detail",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = White,
-                        )
                     }
                 }
             }

@@ -68,6 +68,8 @@ import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.Moonstone
+import com.mockingbird.sleeveup.ui.theme.TickleMePink
 import com.mockingbird.sleeveup.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,37 +224,32 @@ fun CompanyCard(company: Company, companyId: String, navController: NavControlle
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .clickable {
+                navController.navigate(Screen.CompanyDetails.createRoute(companyId))
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Placeholder profile picture",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Gray),
+                tint = White
+            )
+            Spacer(modifier = Modifier.width(16.dp))
 
-            if (company.img.isNotBlank()) {
-                AsyncImage(
-                    model = company.img,
-                    contentDescription = "Company Logo",
-                    modifier = Modifier.size(48.dp),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Placeholder profile picture",
-                    modifier = Modifier
-                        .size(128.dp)
-                        .clip(RectangleShape)
-                        .background(Color.Gray),
-                    tint = White
-                )
-            }
-
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = company.name,
                     style = MaterialTheme.typography.headlineSmall,
@@ -262,27 +259,11 @@ fun CompanyCard(company: Company, companyId: String, navController: NavControlle
                 Text(
                     text = company.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = White,
-                    maxLines = 5,
+                    color = Color.Gray,
+                    maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .width(8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = {
-                            navController.navigate(Screen.CompanyDetails.createRoute(companyId))
-                        },
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
-                    ) {
-                        Text(text = "Detail", style = MaterialTheme.typography.labelLarge, color = White)
-                    }
-                }
+
             }
         }
         HorizontalDivider(
