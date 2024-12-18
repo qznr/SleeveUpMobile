@@ -88,7 +88,7 @@ fun CompanyScreen(navController: NavController) {
     val companiesState by viewModel.companiesState.collectAsState()
     var searchText by remember { mutableStateOf("") }
 
-    Surface (
+    Surface(
         color = AlmostBlack,
         modifier = Modifier.fillMaxSize()
     ) {
@@ -98,9 +98,9 @@ fun CompanyScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically // Align items vertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text( // Title on the left
+                Text(
                     text = "Perusahaan",
                     style = MaterialTheme.typography.headlineSmall,
                     color = White
@@ -126,8 +126,8 @@ fun CompanyScreen(navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.End, // Align filter to the end
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
@@ -143,7 +143,7 @@ fun CompanyScreen(navController: NavController) {
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp)),
+                            .clip(RoundedCornerShape(10.dp)),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedBorderColor = White,
                             unfocusedBorderColor = MajorelieBlue,
@@ -159,30 +159,15 @@ fun CompanyScreen(navController: NavController) {
                                 println("Searching for: $searchText")
                             }
                         ),
-                        singleLine = true // Make it a single line input
+                        singleLine = true
                     )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // Filter Button
-                    IconButton(onClick = { /* TODO: Filter functionality */ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.outline_filter_alt_24),
-                            contentDescription = "Filter",
-                            tint = White,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MajorelieBlue) // Light background
-                                .size(32.dp) // increase Size
-                        )
-                    }
                 }
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 when (companiesState) {
                     is CompanyViewModel.CompaniesState.Loading -> {
@@ -190,9 +175,16 @@ fun CompanyScreen(navController: NavController) {
                     }
 
                     is CompanyViewModel.CompaniesState.Success -> {
-                        val companies =
+                        val allCompanies =
                             (companiesState as CompanyViewModel.CompaniesState.Success).companies
-                        CompanyList(companies = companies, navController = navController)
+                        val filteredCompanies = if (searchText.isNotBlank()) {
+                            allCompanies.filter { (_, company) ->
+                                company.name.contains(searchText, ignoreCase = true)
+                            }
+                        } else {
+                            allCompanies
+                        }
+                        CompanyList(companies = filteredCompanies, navController = navController)
                     }
 
                     is CompanyViewModel.CompaniesState.Error -> {
@@ -210,14 +202,26 @@ fun CompanyScreen(navController: NavController) {
     }
 }
 
+
 @Composable
 fun CompanyList(companies: Map<String, Company>, navController: NavController) {
-    LazyColumn(contentPadding = PaddingValues(all = 8.dp)) {
-        items(companies.toList()) { (companyId, company) ->
-            CompanyCard(company = company, companyId = companyId, navController = navController)
+    if (companies.isEmpty()) {
+        Text(
+            text = "Tidak ada data perusahaan ditemukan.",
+            color = White,
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+        )
+    } else {
+        LazyColumn(contentPadding = PaddingValues(all = 8.dp)) {
+            items(companies.toList()) { (companyId, company) ->
+                CompanyCard(company = company, companyId = companyId, navController = navController)
+            }
         }
     }
 }
+
 
 @Composable
 fun CompanyCard(company: Company, companyId: String, navController: NavController) {

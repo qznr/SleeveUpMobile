@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -19,8 +21,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -46,6 +50,7 @@ import com.mockingbird.sleeveup.screen.LoginScreen
 import com.mockingbird.sleeveup.screen.ProfileScreen
 import com.mockingbird.sleeveup.screen.RegisterScreen // Import RegisterScreen
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
+import com.mockingbird.sleeveup.ui.theme.DarkPurple
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.SleeveUpTheme
 import com.mockingbird.sleeveup.ui.theme.White
@@ -63,16 +68,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreenView() {
+fun MainScreenView(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val bottomBarState = remember { mutableStateOf(false) } // Initially hidden
 
     Scaffold(
         bottomBar = {
-            if (bottomBarState.value) { // Conditionally show BottomBar
-                BottomAppBar(navController = navController)
+            if (bottomBarState.value) {
+                BottomAppBar(
+                    navController = navController,
+                    modifier = modifier
+                        .clip(shape = RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))
+                        .shadow(elevation = 80.dp),
+                )
             }
-        }
+        },
+        containerColor = AlmostBlack
     ) { innerPadding ->
         Surface(modifier = Modifier.padding(innerPadding)) {
             AppNavigation(navController = navController, bottomBarState = bottomBarState)
@@ -89,9 +100,7 @@ fun BottomAppBar(
     val currentRoute = currentBackStackEntry?.destination?.route
 
     NavigationBar(
-        modifier = modifier.shadow(
-            elevation = 8.dp,
-        ),
+        modifier = modifier,
         containerColor = AlmostBlack,
     ) {
         val navigationItems = listOf(
@@ -162,6 +171,7 @@ fun BottomAppBar(
         }
     }
 }
+
 @Composable
 fun AppNavigation(navController: NavHostController, bottomBarState: MutableState<Boolean>) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {

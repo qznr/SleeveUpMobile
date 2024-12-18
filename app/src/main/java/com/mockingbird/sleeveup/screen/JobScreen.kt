@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,7 +30,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -67,7 +64,7 @@ fun JobScreen(navController: NavController) {
     val jobOffersState by viewModel.jobOffersState.collectAsState()
     var searchText by remember { mutableStateOf("") }
 
-    Surface (
+    Surface(
         color = AlmostBlack,
         modifier = Modifier.fillMaxSize()
     ) {
@@ -77,9 +74,9 @@ fun JobScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically // Align items vertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text( // Title on the left
+                Text(
                     text = "Lowongan Kerja",
                     style = MaterialTheme.typography.headlineSmall,
                     color = White
@@ -105,8 +102,8 @@ fun JobScreen(navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.End, // Align filter to the end
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
@@ -117,69 +114,63 @@ fun JobScreen(navController: NavController) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_search_24),
                                 contentDescription = "Search Icon",
-                                tint = MajorelieBlue
+                                tint = AlmostBlack
                             )
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(16.dp)),
+                            .clip(RoundedCornerShape(10.dp)),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedBorderColor = White,
                             unfocusedBorderColor = MajorelieBlue,
                             cursorColor = White,
                             containerColor = White,
                             unfocusedPlaceholderColor = White,
-                            focusedTextColor = AlmostBlack// Placeholder color
+                            focusedTextColor = AlmostBlack
                         ),
                         textStyle = MaterialTheme.typography.bodyMedium,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), // Handle search action
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
                                 println("Searching for: $searchText")
                             }
                         ),
-                        singleLine = true // Make it a single line input
+                        singleLine = true
                     )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // Filter Button
-                    IconButton(onClick = { /* TODO: Filter functionality */ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.outline_filter_alt_24),
-                            contentDescription = "Filter",
-                            tint = White,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MajorelieBlue) // Light background
-                                .size(32.dp) // increase Size
-                        )
-                    }
                 }
             }
 
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp))
-            {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+            ) {
                 when (jobOffersState) {
                     is JobViewModel.JobOffersState.Loading -> {
                         CircularProgressIndicator()
                     }
 
                     is JobViewModel.JobOffersState.Success -> {
-                        val jobOffers =
+                        val allJobOffers =
                             (jobOffersState as JobViewModel.JobOffersState.Success).jobOffers
-                        JobList(jobOffers = jobOffers, navController = navController)
+                        val filteredJobOffers = if (searchText.isNotBlank()) {
+                            allJobOffers.filter { (_, jobOffer) ->
+                                jobOffer.profession.contains(searchText, ignoreCase = true) ||
+                                        jobOffer.company_name.contains(searchText, ignoreCase = true)
+                            }
+                        } else {
+                            allJobOffers
+                        }
+                        JobList(jobOffers = filteredJobOffers, navController = navController)
                     }
 
                     is JobViewModel.JobOffersState.Error -> {
-                        val errorMessage = (jobOffersState as JobViewModel.JobOffersState.Error).message
+                        val errorMessage =
+                            (jobOffersState as JobViewModel.JobOffersState.Error).message
                         Text(text = "Error: $errorMessage")
                     }
 
                     else -> {
-                        // Initial State
                         Text(text = "Waiting for initial State...")
                     }
                 }
@@ -190,9 +181,19 @@ fun JobScreen(navController: NavController) {
 
 @Composable
 fun JobList(jobOffers: Map<String, JobOffer>, navController: NavController) {
-    LazyColumn(contentPadding = PaddingValues(all = 8.dp)) {
-        items(jobOffers.toList()) { (jobOfferId, jobOffer) ->
-            JobCard(jobOffer = jobOffer, jobOfferId = jobOfferId, navController = navController)
+    if (jobOffers.isEmpty()) {
+        Text(
+            text = "Tidak ada lowongan kerja ditemukan.",
+            color = White,
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+        )
+    } else {
+        LazyColumn(contentPadding = PaddingValues(all = 8.dp)) {
+            items(jobOffers.toList()) { (jobOfferId, jobOffer) ->
+                JobCard(jobOffer = jobOffer, jobOfferId = jobOfferId, navController = navController)
+            }
         }
     }
 }
@@ -244,7 +245,7 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start // Align items to the start
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     if (jobOffer.salary.isNotBlank()) {
                         Icon(
@@ -293,8 +294,8 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                     ) {
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = if (jobOffer.is_remote == "yes") Moonstone else TickleMePink, // Conditional color
-                            modifier = Modifier.padding(vertical = 2.dp) // small vertical padding
+                            color = if (jobOffer.is_remote == "yes") Moonstone else TickleMePink,
+                            modifier = Modifier.padding(vertical = 2.dp)
                         ) {
                             Text(
                                 text = if (jobOffer.is_remote == "yes") "Remote" else "On-site",
