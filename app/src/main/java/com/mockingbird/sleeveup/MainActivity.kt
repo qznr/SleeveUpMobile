@@ -172,13 +172,6 @@ fun AppNavigation(navController: NavHostController, bottomBarState: MutableState
             ProfileScreen(navController = navController, userId = userId)
         }
         composable(
-            route = Screen.EditUserProfile.route,
-            arguments = listOf(navArgument("userId"){type = NavType.StringType})
-        ) { navBackStackEntry ->
-            val userId = navBackStackEntry.arguments?.getString("userId") ?: "Guest"
-            EditUserProfileScreen(navController = navController, userId = userId)
-        }
-        composable(
             route = Screen.Jobs.route,
         ) {
             bottomBarState.value = true
