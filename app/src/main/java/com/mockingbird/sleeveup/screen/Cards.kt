@@ -117,7 +117,10 @@ fun JobOfferCard(
 fun EventCard(event: Event, eventId: String, navController: NavController) {
     Card(modifier = Modifier
         .fillMaxWidth()
-        .padding(8.dp)) {
+        .padding(8.dp)
+        .clickable {
+            navController.navigate(Screen.EventDetails.createRoute(eventId))
+        }) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = event.name,
