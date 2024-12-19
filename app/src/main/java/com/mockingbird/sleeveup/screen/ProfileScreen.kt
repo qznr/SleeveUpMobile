@@ -16,10 +16,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +59,7 @@ import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.Moonstone
 import com.mockingbird.sleeveup.ui.theme.TickleMePink
 import com.mockingbird.sleeveup.ui.theme.White
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, userId: String) {
@@ -78,6 +81,13 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController, u
 
     val userState by viewModel.userState.collectAsState()
     val imageState by viewModel.imageState.collectAsState()
+
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(key1 = Unit) {
+        scope.launch {
+            viewModel.refreshUser()
+        }
+    }
 
     Surface (
         color = AlmostBlack,

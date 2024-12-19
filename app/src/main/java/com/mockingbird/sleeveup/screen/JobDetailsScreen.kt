@@ -28,6 +28,7 @@ import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
 import com.mockingbird.sleeveup.factory.JobDetailsViewModelFactory
 import com.mockingbird.sleeveup.model.JobDetailsViewModel
+import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.repository.FirebaseUserRepository
 import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.retrofit.ApiConfig
@@ -119,15 +120,18 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
                                     user = user,
                                     pendingState = pendingState,
                                     onApplyJob = { user, jobOffer ->
-                                        if (user != null) viewModel.applyJob(
-                                            user, jobOffer
-                                        ) else {
+                                        if (user != null) {
+                                            viewModel.applyJob(user, jobOffer)
+                                        } else {
                                             Log.d("JobDetailsScreen", "user is null, please login")
                                         }
                                     },
-                                    onRemoveJob = { user ->
-                                        if (user != null) viewModel.removeJobApplication(user)
-                                    }
+                                    onRemoveJob = { user, onComplete ->
+                                        if (user != null) {
+                                            viewModel.removeJobApplication(user, onComplete)
+                                        }
+                                    },
+                                    navController = navController
                                 )
                             }
 
@@ -166,7 +170,8 @@ fun JobOfferDetails(
     user: User?,
     pendingState: JobDetailsViewModel.PendingState,
     onApplyJob: (User?, JobOffer) -> Unit,
-    onRemoveJob: (User?) -> Unit
+    onRemoveJob: (User?, () -> Unit) -> Unit,
+    navController: NavController
 ) {
 
     val isPending = when (pendingState) {
@@ -403,7 +408,8 @@ fun JobOfferDetails(
         Button(
             onClick = {
                 if (isPending) {
-                    onRemoveJob(user)
+                    onRemoveJob(user) {
+                    }
                 } else {
                     onApplyJob(user, jobOffer)
                 }

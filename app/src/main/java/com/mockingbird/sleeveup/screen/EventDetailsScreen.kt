@@ -1,5 +1,7 @@
 package com.mockingbird.sleeveup.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -95,13 +97,14 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                         Text("Waiting for event details...", color = White)
                     }
                 }
-                }
+            }
         }
     }
 }
 
 @Composable
 fun EventDetailsContent(event: Event) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,7 +122,10 @@ fun EventDetailsContent(event: Event) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { /* TODO open link in browser */ },
+            onClick = {
+                // Open registration link in browser
+                openUrl(context, event.registerLink)
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
@@ -263,7 +269,9 @@ fun EventDetailsContent(event: Event) {
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
-                    onClick = { /* TODO open link in browser */ }
+                    onClick = {
+                        // Open instagram link in browser
+                    }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.instagram),
@@ -272,7 +280,9 @@ fun EventDetailsContent(event: Event) {
                     )
                 }
                 IconButton(
-                    onClick = { /* TODO open link in browser */ }
+                    onClick = {
+                        // Open facebook link in browser
+                    }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.facebook),
@@ -281,7 +291,9 @@ fun EventDetailsContent(event: Event) {
                     )
                 }
                 IconButton(
-                    onClick = { /* TODO open link in browser */ }
+                    onClick = {
+                        // Open website link in browser
+                    }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.website),
@@ -290,6 +302,19 @@ fun EventDetailsContent(event: Event) {
                     )
                 }
             }
+        }
+    }
+}
+
+
+private fun openUrl(context: android.content.Context, url: String) {
+    if (url.isNotBlank()) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            //TODO show toast error when url not valid
         }
     }
 }

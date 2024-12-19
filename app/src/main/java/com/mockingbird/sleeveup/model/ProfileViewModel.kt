@@ -58,6 +58,10 @@ class ProfileViewModel(
         }
     }
 
+    fun refreshUser() {
+        fetchUser()
+    }
+
     sealed class ProfileState {
         object Idle : ProfileState()
         object Loading : ProfileState()

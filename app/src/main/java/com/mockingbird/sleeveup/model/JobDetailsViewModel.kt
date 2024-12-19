@@ -92,7 +92,7 @@ class JobDetailsViewModel(
         }
     }
 
-    fun removeJobApplication(user: User) {
+    fun removeJobApplication(user: User, onComplete: () -> Unit) {
         viewModelScope.launch {
             _pendingState.value = PendingState.Loading
             try {
@@ -102,6 +102,7 @@ class JobDetailsViewModel(
                 val updatedUser = user.copy(pendingJobApplication = updatedPendingApps)
                 userRepository.updateUser(updatedUser)
                 _pendingState.value = PendingState.Success(false)
+                onComplete()
 
             } catch (e: Exception) {
                 _pendingState.value =
