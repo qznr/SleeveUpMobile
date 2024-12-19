@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -298,20 +299,52 @@ fun JobOfferCard(
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Column {
-                    if (jobOffer.salary.isNotBlank()){
-                        Text(
-                            text = "Rp ${NumberFormat.getNumberInstance(Locale("id", "ID")).format(jobOffer.salary.toDouble())} / bulan",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = White
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (jobOffer.salary.isNotBlank()) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_payments_24),
+                                contentDescription = "Salary",
+                                tint = Gray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Rp ${
+                                    NumberFormat.getNumberInstance(Locale("id", "ID"))
+                                        .format(jobOffer.salary.toDouble())
+                                } / Bulan",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.LightGray
+                            )
+                        }
                     }
-                    if(jobOffer.education.isNotBlank()){
-                        Text(
-                            text = jobOffer.education,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.LightGray
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if(jobOffer.education.isNotBlank()) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_school_24),
+                                contentDescription = "Education",
+                                tint = Gray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = jobOffer.education,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.LightGray
+                            )
+                        }
                     }
+
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -324,7 +357,8 @@ fun JobOfferCard(
                                 text = if (jobOffer.is_remote == "yes") "Remote" else "On-site",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = AlmostBlack,
-                                modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
                         }
                         Surface(
@@ -336,7 +370,8 @@ fun JobOfferCard(
                                 text = jobOffer.type ?: "No info",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = AlmostBlack,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
                         }
                     }

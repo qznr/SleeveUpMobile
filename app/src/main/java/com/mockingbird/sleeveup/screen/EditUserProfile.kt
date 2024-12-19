@@ -3,6 +3,7 @@ package com.mockingbird.sleeveup.screen
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,6 +58,7 @@ import com.mockingbird.sleeveup.service.StorageService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
 import com.mockingbird.sleeveup.ui.theme.Moonstone
+import com.mockingbird.sleeveup.ui.theme.TickleMePink
 import com.mockingbird.sleeveup.ui.theme.White
 import java.util.UUID
 
@@ -535,7 +537,7 @@ fun EditUserProfileContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Projects", style = MaterialTheme.typography.titleMedium, color = Moonstone)
+                Text("Projects", style = MaterialTheme.typography.titleLarge, color = TickleMePink, fontWeight = FontWeight.Bold)
                 IconButton(onClick = {
                     projects.add(Project(name = "", description = ""))
                 }) {
@@ -566,7 +568,7 @@ fun EditUserProfileContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Certifications", style = MaterialTheme.typography.titleMedium, color = Moonstone)
+                Text("Certifications", style = MaterialTheme.typography.titleLarge, color = TickleMePink, fontWeight = FontWeight.Bold)
                 IconButton(onClick = {
                     certifications.add(Certificate(name = ""))
                 }) {
@@ -599,7 +601,7 @@ fun EditUserProfileContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Pengalaman", style = MaterialTheme.typography.titleMedium, color = Moonstone)
+                Text("Pengalaman", style = MaterialTheme.typography.titleLarge, color = TickleMePink, fontWeight = FontWeight.Bold)
                 IconButton(onClick = {
                     experiences.add(Experience(name = "", description = "", role = "", startDate = ""))
                 }) {
@@ -630,7 +632,7 @@ fun EditUserProfileContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Sedang Dilamar", style = MaterialTheme.typography.titleMedium)
+                Text("Sedang Dilamar", style = MaterialTheme.typography.titleLarge, color = TickleMePink, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -802,7 +804,7 @@ fun CertificationItem(
         OutlinedTextField(
             value = certification.type ?: "",
             onValueChange = { onCertificationChange(certification.copy(type = it)) },
-            label = { Text("Certification Type") },
+            label = { Text("Penyelenggara") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = LocalTextStyle.current.copy(color = White),
             colors = outlinedTextFieldColors(
@@ -1031,25 +1033,40 @@ fun ExperienceItem(
 fun PendingApplicationItem(
     application: Pair<String, JobOffer>, onRemoveApplication: () -> Unit
 ) {
-    Column {
-        Text(
-            text = application.second.profession,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        border = BorderStroke(1.dp, White)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = application.second.profession,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Moonstone
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = application.second.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = White
+            )
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 4.dp),
+            thickness = 1.dp,
+            color = White.copy(alpha = 0.5f)
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = application.second.description,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = onRemoveApplication) {
-                Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Filled.Delete,
-                    contentDescription = "Remove Application",
-                    tint = White
-                )
-            }
+    }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        IconButton(onClick = onRemoveApplication) {
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Filled.Delete,
+                contentDescription = "Remove Application",
+                tint = White
+            )
         }
     }
 }

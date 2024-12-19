@@ -503,25 +503,76 @@ fun UserCredentialItem(item: Any?, textColor: Color) {
 
 @Composable
 fun ProjectCredentialItem(project: Project, textColor: Color) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(text = project.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.width(4.dp))
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_article_24),
+                contentDescription = "Project",
+                tint = White,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = project.name ?: "No Name",
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacer(Modifier.padding(4.dp))
+        Text(
+            text = "${project.startDate} - ${project.endDate}" ?: "No Name",
+            color = Color.LightGray,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.padding(4.dp))
         project.description?.let {
             Text(text = it, color = textColor, style = MaterialTheme.typography.bodyMedium)
         }
-        project.type?.let {
-            Text(text = "Type: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.padding(4.dp))
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = TickleMePink,
+            modifier = Modifier.padding(vertical = 4.dp)
+        ) {
+            Text(
+                text = project.type ?: "No info",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = AlmostBlack,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+            )
         }
-        project.startDate?.let {
-            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.padding(2.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    /* TODO open link in browser */
+                    println("Button clicked!")
+                },
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_link_24),
+                contentDescription = "Project",
+                tint = Moonstone,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = project.link ?: "Not linked",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+            )
         }
-        project.endDate?.let {
-            Text(text = "End Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-        project.link?.let {
-            Text(text = "Link: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-
     }
 }
 
@@ -529,51 +580,135 @@ fun ProjectCredentialItem(project: Project, textColor: Color) {
 @Composable
 fun CertificateCredentialItem(certificate: Certificate, textColor: Color) {
     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(text = certificate.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.width(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_workspace_premium_24),
+                contentDescription = "Certification",
+                tint = White,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = certificate.name ?: "No Name",
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacer(Modifier.padding(4.dp))
         certificate.type?.let {
-            Text(text = "Type: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Oleh $it", color = Moonstone, style = MaterialTheme.typography.titleMedium)
         }
+        Spacer(Modifier.padding(4.dp))
         certificate.startDate?.let {
-            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Diperoleh pada $it", color = Color.LightGray, style = MaterialTheme.typography.bodyMedium)
         }
-        certificate.link?.let {
-            Text(text = "Link: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
+        Spacer(Modifier.padding(4.dp))
         certificate.skills?.let { skills ->
             if (skills.isNotEmpty()) {
                 Text(text ="Skills: ${skills.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
             }
         }
+        Spacer(Modifier.padding(2.dp))
         certificate.tools?.let { tools ->
             if (tools.isNotEmpty()) {
                 Text(text = "Tools: ${tools.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
             }
         }
-
+        Spacer(Modifier.padding(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    /* TODO open link in browser */
+                    println("Button clicked!")
+                },
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_link_24),
+                contentDescription = "Certification",
+                tint = Moonstone,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = certificate.link ?: "Not linked",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+            )
+        }
     }
 }
 
 @Composable
 fun ExperienceCredentialItem(experience: Experience, textColor: Color) {
     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(text = experience.name ?: "No Name", fontWeight = FontWeight.Bold, color = textColor, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.width(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_loker_24),
+                contentDescription = "Experience",
+                tint = White,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = experience.name ?: "No Name",
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacer(Modifier.padding(2.dp))
+        Text(
+            text = experience.role,
+            color = Moonstone,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.padding(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_location_on_24),
+                contentDescription = "Certification",
+                tint = Moonstone,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = experience.location ?: "No Name",
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        Spacer(Modifier.padding(2.dp))
+        Text(
+            text = "${experience.startDate} - ${experience.endDate}" ?: "No Name",
+            color = Color.LightGray,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.padding(2.dp))
         experience.description?.let {
             Text(text = it, color = textColor, style = MaterialTheme.typography.bodyMedium)
         }
-        experience.role?.let {
-            Text(text = "Role: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-        experience.location?.let {
-            Text(text = "Location: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-        experience.startDate?.let {
-            Text(text = "Start Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-        experience.endDate?.let {
-            Text(text = "End Date: $it", color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
+        Spacer(Modifier.padding(4.dp))
         experience.skills?.let { skills ->
             if (skills.isNotEmpty()) {
                 Text(text = "Skills: ${skills.joinToString(", ")}", color = textColor, style = MaterialTheme.typography.bodyMedium)
@@ -609,17 +744,18 @@ fun UserCredentialCard(title: String, description: String) {
             .fillMaxWidth()
             .padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
+        border = BorderStroke(1.dp, White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Moonstone
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = description, style = MaterialTheme.typography.bodyMedium
+                text = description, style = MaterialTheme.typography.bodyMedium, color = White
             )
         }
     }
