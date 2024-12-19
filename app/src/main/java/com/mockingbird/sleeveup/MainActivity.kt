@@ -110,7 +110,7 @@ fun BottomAppBar(
                 screen = Screen.Jobs
             ),
             NavigationItem(
-                title = "Perusahaan",
+                title = "Company",
                 icon = painterResource(id = R.drawable.baseline_perusahaan_24),
                 screen = Screen.Companies
             ),

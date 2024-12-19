@@ -181,7 +181,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
                                     .background(Color.Gray),
                                 tint = White
                             )
-
                         }
                     }
                     is ProfileViewModel.ImageState.Error -> {
@@ -303,13 +302,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             onExpandChange = { isBioExpanded = it },
             color = MajorelieBlue,
             showEditButton = false,  // Pastikan ini true jika ingin menampilkan tombol edit
-            onEditClick = {
-                // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
-                // Navigasi ke layar edit profil
-                // Menampilkan dialog edit
-                // dll.
-                //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            },
             isExpandable = isBioExpandable
         )
 
@@ -326,13 +318,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             onExpandChange = { isExperienceExpanded = it },
             color = MajorelieBlue,
             showEditButton = false,
-            onEditClick = {
-                // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
-                // Navigasi ke layar edit profil
-                // Menampilkan dialog edit
-                // dll.
-                //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            },
             isExpandable = isExperienceExpandable
         )
         var isProjectExpanded by remember { mutableStateOf(false) }
@@ -348,13 +333,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             onExpandChange = { isProjectExpanded = it },
             color = MajorelieBlue,
             showEditButton = false,
-            onEditClick = {
-                // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
-                // Navigasi ke layar edit profil
-                // Menampilkan dialog edit
-                // dll.
-                //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            },
             isExpandable = isProjectExpandable
         )
 
@@ -371,13 +349,6 @@ fun ProfileContent(user: User, imageState: ProfileViewModel.ImageState, navContr
             onExpandChange = { isCertificationExpanded = it },
             color = MajorelieBlue,
             showEditButton = false,
-            onEditClick = {
-                // Aksi yang akan dilakukan saat tombol edit diklik, misalnya:
-                // Navigasi ke layar edit profil
-                // Menampilkan dialog edit
-                // dll.
-                //Contoh: navController.navigate(Screen.EditUserProfile.createRoute(user.id!!))
-            },
             isExpandable = isCertificationExpandable
         )
 
