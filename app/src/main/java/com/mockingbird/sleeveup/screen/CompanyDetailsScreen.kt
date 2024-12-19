@@ -52,7 +52,13 @@ fun CompanyDetailsScreen(navController: NavController, companyId: String) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perusahaan", color = White) },
+                title = {
+                    Text(
+                        text = "Perusahaan",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
