@@ -15,15 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mockingbird.sleeveup.R
@@ -37,6 +33,7 @@ import com.mockingbird.sleeveup.service.FirestoreService
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.Moonstone
 import com.mockingbird.sleeveup.ui.theme.White
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -73,76 +70,90 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Lowongan Kerja", color = White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AlmostBlack)
-            )
-        },
-        containerColor = AlmostBlack
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when (jobOfferState) {
-                is JobDetailsViewModel.JobOfferState.Loading -> {
-                    CircularProgressIndicator(color = White)
+    Surface(
+        color = AlmostBlack,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
                 }
-                is JobDetailsViewModel.JobOfferState.Success -> {
-                    val jobOffer = (jobOfferState as JobDetailsViewModel.JobOfferState.Success).jobOffer
+                Text(
+                    text = "Lowongan Kerja",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = White
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (jobOfferState) {
+                    is JobDetailsViewModel.JobOfferState.Loading -> {
+                        CircularProgressIndicator(color = White)
+                    }
 
-                    when (companyState) {
-                        is JobDetailsViewModel.CompanyState.Loading -> {
-                            CircularProgressIndicator(color = White)
-                        }
-                        is JobDetailsViewModel.CompanyState.Success -> {
-                            val company = (companyState as JobDetailsViewModel.CompanyState.Success).company
-                            JobOfferDetails(
-                                jobOffer = jobOffer,
-                                company = company,
-                                user = user,
-                                pendingState = pendingState,
-                                onApplyJob = { user, jobOffer ->
-                                    if (user != null) viewModel.applyJob(
-                                        user, jobOffer
-                                    ) else {
-                                        Log.d("JobDetailsScreen", "user is null, please login")
+                    is JobDetailsViewModel.JobOfferState.Success -> {
+                        val jobOffer =
+                            (jobOfferState as JobDetailsViewModel.JobOfferState.Success).jobOffer
+
+                        when (companyState) {
+                            is JobDetailsViewModel.CompanyState.Loading -> {
+                                CircularProgressIndicator(color = White)
+                            }
+
+                            is JobDetailsViewModel.CompanyState.Success -> {
+                                val company =
+                                    (companyState as JobDetailsViewModel.CompanyState.Success).company
+                                JobOfferDetails(
+                                    jobOffer = jobOffer,
+                                    company = company,
+                                    user = user,
+                                    pendingState = pendingState,
+                                    onApplyJob = { user, jobOffer ->
+                                        if (user != null) viewModel.applyJob(
+                                            user, jobOffer
+                                        ) else {
+                                            Log.d("JobDetailsScreen", "user is null, please login")
+                                        }
+                                    },
+                                    onRemoveJob = { user ->
+                                        if (user != null) viewModel.removeJobApplication(user)
                                     }
-                                },
-                                onRemoveJob = { user ->
-                                    if(user != null) viewModel.removeJobApplication(user)
-                                }
-                            )
+                                )
+                            }
+
+                            is JobDetailsViewModel.CompanyState.Error -> {
+                                val errorMessage =
+                                    (companyState as JobDetailsViewModel.CompanyState.Error).message
+                                Text("Error fetching company details: $errorMessage", color = White)
+                            }
+
+                            else -> {
+                                Text("Waiting for company details...", color = White)
+                            }
                         }
-                        is JobDetailsViewModel.CompanyState.Error -> {
-                            val errorMessage =
-                                (companyState as JobDetailsViewModel.CompanyState.Error).message
-                            Text("Error fetching company details: $errorMessage", color = White)
-                        }
-                        else -> {
-                            Text("Waiting for company details...", color = White)
-                        }
+
                     }
 
-                }
-                is JobDetailsViewModel.JobOfferState.Error -> {
-                    val errorMessage =
-                        (jobOfferState as JobDetailsViewModel.JobOfferState.Error).message
-                    Text("Error fetching job offer details: $errorMessage", color = White)
-                }
-                else -> {
-                    Text("Waiting for job offer details...", color = White)
+                    is JobDetailsViewModel.JobOfferState.Error -> {
+                        val errorMessage =
+                            (jobOfferState as JobDetailsViewModel.JobOfferState.Error).message
+                        Text("Error fetching job offer details: $errorMessage", color = White)
+                    }
+
+                    else -> {
+                        Text("Waiting for job offer details...", color = White)
+                    }
                 }
             }
         }
@@ -195,7 +206,7 @@ fun JobOfferDetails(
                 tint = White
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Column {
+            Column(horizontalAlignment = Alignment.Start) {
                 // Job Offer Name
                 Text(
                     text = jobOffer.profession,
@@ -209,23 +220,58 @@ fun JobOfferDetails(
                     style = MaterialTheme.typography.titleLarge,
                     color = White
                 )
-                Text(
-                    text = company.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
-                Text(
-                    text = company.number,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
-                Text(
-                    text = company.address,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.outline_email_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.email,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.outline_call_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.number,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.baseline_location_on_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.address,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
             }
-
         }
         Spacer(modifier = Modifier.height(16.dp))
 
