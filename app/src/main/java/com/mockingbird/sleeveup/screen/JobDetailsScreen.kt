@@ -76,7 +76,13 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Lowongan Kerja", color = White) },
+                title = {
+                    Text(
+                        text = "Lowongan Kerja",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
