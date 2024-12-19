@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController, jobId: String) {
     val apiService = ApiConfig.getApiService()
@@ -180,14 +179,18 @@ fun JobOfferDetails(
     var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
     var isRequirementsExpanded by remember { mutableStateOf(false) }
     var isBenefitsExpanded by remember { mutableStateOf(false) }
+    var isJobDescriptionExpanded by remember { mutableStateOf(false) }
 
     val companyDescriptionLength = company.description.length
     val requirementLength = jobOffer.requirement.length
     val benefitsLength = jobOffer.benefits.length
+    val jobDescriptionLength = jobOffer.description.length
 
     val isCompanyExpandable = companyDescriptionLength > 100
     val isRequirementExpandable = requirementLength > 100
     val isBenefitsExpandable = benefitsLength > 100
+    val isJobDescriptionExpandable = jobDescriptionLength > 100
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -206,6 +209,7 @@ fun JobOfferDetails(
                 tint = White
             )
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(horizontalAlignment = Alignment.Start) {
                 // Job Offer Name
                 Text(
@@ -274,6 +278,31 @@ fun JobOfferDetails(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Job Deskripsi
+        ExpandableCard(
+            title = "Deskripsi Pekerjaan",
+            previewContent = {
+                Text(
+                    text = jobOffer.description.take(100),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            fullContent = {
+                Text(
+                    text = jobOffer.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            isExpanded = isJobDescriptionExpanded,
+            onExpandChange = {isJobDescriptionExpanded = it},
+            color = MajorelieBlue,
+            showEditButton = false,
+            isExpandable = isJobDescriptionExpandable
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Company Info
         ExpandableCard(

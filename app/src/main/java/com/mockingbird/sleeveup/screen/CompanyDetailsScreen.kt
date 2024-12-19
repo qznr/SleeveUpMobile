@@ -1,6 +1,7 @@
 package com.mockingbird.sleeveup.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,15 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
 import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.entity.JobOffer
@@ -38,8 +35,6 @@ import com.mockingbird.sleeveup.ui.theme.White
 import java.text.NumberFormat
 import java.util.Locale
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompanyDetailsScreen(navController: NavController, companyId: String) {
     val apiService = ApiConfig.getApiService()
@@ -49,71 +44,77 @@ fun CompanyDetailsScreen(navController: NavController, companyId: String) {
     val companyState by viewModel.companyState.collectAsState()
     val jobOffersState by viewModel.jobOffersState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Perusahaan",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
+    Surface(
+        color = AlmostBlack,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
+                }
+                Text(
+                    text = "Perusahaan",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = White
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (companyState) {
+                    is CompanyDetailsViewModel.CompanyState.Loading -> {
+                        CircularProgressIndicator(color = White)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AlmostBlack)
 
-            )
-        },
-        containerColor = AlmostBlack
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when (companyState) {
-                is CompanyDetailsViewModel.CompanyState.Loading -> {
-                    CircularProgressIndicator(color = White)
-                }
-                is CompanyDetailsViewModel.CompanyState.Success -> {
-                    val company = (companyState as CompanyDetailsViewModel.CompanyState.Success).company
-                    when (jobOffersState) {
-                        is CompanyDetailsViewModel.JobOffersState.Loading -> {
-                            CircularProgressIndicator(color = White)
-                        }
-                        is CompanyDetailsViewModel.JobOffersState.Success -> {
-                            val jobOffers =
-                                (jobOffersState as CompanyDetailsViewModel.JobOffersState.Success).jobOffers
-                            CompanyDetailsContent(
-                                company = company,
-                                jobOffers = jobOffers,
-                                navController = navController
-                            )
-                        }
-                        is CompanyDetailsViewModel.JobOffersState.Error -> {
-                            val errorMessage =
-                                (jobOffersState as CompanyDetailsViewModel.JobOffersState.Error).message
-                            Text("Error fetching job offers: $errorMessage", color = White)
-                        }
-                        else -> {
-                            Text("Waiting for job offers...", color = White)
+                    is CompanyDetailsViewModel.CompanyState.Success -> {
+                        val company =
+                            (companyState as CompanyDetailsViewModel.CompanyState.Success).company
+                        when (jobOffersState) {
+                            is CompanyDetailsViewModel.JobOffersState.Loading -> {
+                                CircularProgressIndicator(color = White)
+                            }
+
+                            is CompanyDetailsViewModel.JobOffersState.Success -> {
+                                val jobOffers =
+                                    (jobOffersState as CompanyDetailsViewModel.JobOffersState.Success).jobOffers
+                                CompanyDetailsContent(
+                                    company = company,
+                                    jobOffers = jobOffers,
+                                    navController = navController
+                                )
+                            }
+
+                            is CompanyDetailsViewModel.JobOffersState.Error -> {
+                                val errorMessage =
+                                    (jobOffersState as CompanyDetailsViewModel.JobOffersState.Error).message
+                                Text("Error fetching job offers: $errorMessage", color = White)
+                            }
+
+                            else -> {
+                                Text("Waiting for job offers...", color = White)
+                            }
                         }
                     }
-                }
-                is CompanyDetailsViewModel.CompanyState.Error -> {
-                    val errorMessage =
-                        (companyState as CompanyDetailsViewModel.CompanyState.Error).message
-                    Text("Error fetching company details: $errorMessage", color = White)
-                }
-                else -> {
-                    Text("Waiting for company details...", color = White)
+
+                    is CompanyDetailsViewModel.CompanyState.Error -> {
+                        val errorMessage =
+                            (companyState as CompanyDetailsViewModel.CompanyState.Error).message
+                        Text("Error fetching company details: $errorMessage", color = White)
+                    }
+
+                    else -> {
+                        Text("Waiting for company details...", color = White)
+                    }
                 }
             }
         }
@@ -129,12 +130,12 @@ fun CompanyDetailsContent(
     val companyDescriptionLength = company.description.length
     val isCompanyExpandable = companyDescriptionLength > 100
     var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -150,46 +151,91 @@ fun CompanyDetailsContent(
             )
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(horizontalAlignment = Alignment.Start) {
                 Text(
                     text = company.name,
                     style = MaterialTheme.typography.headlineSmall,
-                    color = White
+                    fontWeight = FontWeight.Bold,
+                    color = MajorelieBlue
                 )
-                Text(
-                    text = company.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
-                Text(
-                    text = company.number,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
-                Text(
-                    text = company.address,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.outline_email_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.email,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.outline_call_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.number,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.baseline_location_on_24),
+                        contentDescription = "Placeholder profile picture",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = Moonstone
+                    )
+                    Text(
+                        text = company.address,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Tentang Perusahaan",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+        ExpandableCard(
+            title = "Tentang Perusahaan",
+            previewContent = {
+                Text(
+                    text = company.description.take(100),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            fullContent = {
+                Text(
+                    text = company.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            isExpanded = isCompanyDescriptionExpanded,
+            onExpandChange = {isCompanyDescriptionExpanded = it},
             color = MajorelieBlue,
-            modifier = Modifier.padding(bottom = 8.dp)
+            showEditButton = false,
+            isExpandable = isCompanyExpandable
         )
-        Text(
-            text = company.description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = White
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
-
 
         ExpandableCard(
             title = "Posisi",
@@ -231,7 +277,10 @@ fun JobOfferCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable {
+                navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Column(
@@ -292,16 +341,12 @@ fun JobOfferCard(
                         }
                     }
                 }
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue),
-                ) {
-                    Text("Detail", color = White)
-                }
             }
         }
-
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 4.dp),
+            thickness = 1.dp,
+            color = White.copy(alpha = 0.5f)
+        )
     }
 }

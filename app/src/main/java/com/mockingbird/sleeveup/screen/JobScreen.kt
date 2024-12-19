@@ -114,7 +114,7 @@ fun JobScreen(navController: NavController) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_search_24),
                                 contentDescription = "Search Icon",
-                                tint = AlmostBlack
+                                tint = MajorelieBlue
                             )
                         },
                         modifier = Modifier
