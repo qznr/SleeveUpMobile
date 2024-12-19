@@ -1,6 +1,8 @@
 package com.mockingbird.sleeveup.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,9 +33,12 @@ import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.Event
 import com.mockingbird.sleeveup.factory.EventDetailsViewModelFactory
 import com.mockingbird.sleeveup.model.EventDetailsViewModel
+import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.retrofit.ApiConfig
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.Moonstone
+import com.mockingbird.sleeveup.ui.theme.TickleMePink
 import com.mockingbird.sleeveup.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,46 +50,52 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
 
     val eventState by viewModel.eventState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Detail Event", color = White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AlmostBlack)
-            )
-        },
-        containerColor = AlmostBlack
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when (eventState) {
-                is EventDetailsViewModel.EventState.Loading -> {
-                    CircularProgressIndicator(color = White)
+    Surface(
+        color = AlmostBlack,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
                 }
-                is EventDetailsViewModel.EventState.Success -> {
-                    val event =
-                        (eventState as EventDetailsViewModel.EventState.Success).event
-                    EventDetailsContent(event = event)
-                }
-                is EventDetailsViewModel.EventState.Error -> {
-                    val errorMessage =
-                        (eventState as EventDetailsViewModel.EventState.Error).message
-                    Text("Error fetching event details: $errorMessage", color = White)
-                }
-                else -> {
-                    Text("Waiting for event details...", color = White)
-                }
+                Text(
+                    text = "Detail Event",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = White
+                )
             }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (eventState) {
+                    is EventDetailsViewModel.EventState.Loading -> {
+                        CircularProgressIndicator(color = White)
+                    }
+                    is EventDetailsViewModel.EventState.Success -> {
+                        val event =
+                            (eventState as EventDetailsViewModel.EventState.Success).event
+                        EventDetailsContent(event = event)
+                    }
+                    is EventDetailsViewModel.EventState.Error -> {
+                        val errorMessage =
+                            (eventState as EventDetailsViewModel.EventState.Error).message
+                        Text("Error fetching event details: $errorMessage", color = White)
+                    }
+                    else -> {
+                        Text("Waiting for event details...", color = White)
+                    }
+                }
+                }
         }
     }
 }
@@ -92,7 +105,7 @@ fun EventDetailsContent(event: Event) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
@@ -119,6 +132,7 @@ fun EventDetailsContent(event: Event) {
         Text(
             text = event.name,
             style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
             color = MajorelieBlue,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -131,33 +145,58 @@ fun EventDetailsContent(event: Event) {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Column(horizontalAlignment = Alignment.Start){
-            if (event.presenter.isNotBlank()) {
-                Text(
-                    text = "Presenter: ${event.presenter}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = White,
-                    modifier = Modifier.fillMaxWidth(),
 
+        Column(horizontalAlignment = Alignment.Start){
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (event.presenter.isNotBlank()) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_person_24),
+                        contentDescription = "Presenter",
+                        tint = Gray,
+                        modifier = Modifier.size(24.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = event.presenter,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = White,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (event.description.isNotBlank()) {
-                Text(
-                    text = "Deskripsi: ${event.description}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = White,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, color = Moonstone, shape = MaterialTheme.shapes.medium), // Border putih
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                ) {
+                    Text(
+                        text = event.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             if(event.materials.isNotBlank()){
-                Text(
-                    text = "Materials: ${event.materials}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = White,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, color = Moonstone, shape = MaterialTheme.shapes.medium), // Border putih
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                ) {
+                    Text(
+                        text = "Materials: ${event.materials}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = White,
+                        modifier = Modifier.padding(8.dp),
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row{
@@ -165,7 +204,7 @@ fun EventDetailsContent(event: Event) {
                     painter = painterResource(id = R.drawable.baseline_calendar_24),
                     contentDescription = "Date",
                     modifier = Modifier.size(20.dp),
-                    tint = White
+                    tint = Moonstone
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -181,7 +220,7 @@ fun EventDetailsContent(event: Event) {
                     painter = painterResource(id = R.drawable.baseline_schedule_24),
                     contentDescription = "Time",
                     modifier = Modifier.size(20.dp),
-                    tint = White
+                    tint = Moonstone
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -197,7 +236,7 @@ fun EventDetailsContent(event: Event) {
                     painter = painterResource(id = R.drawable.baseline_location_on_24),
                     contentDescription = "Location",
                     modifier = Modifier.size(20.dp),
-                    tint = White
+                    tint = Moonstone
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -205,6 +244,51 @@ fun EventDetailsContent(event: Event) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = White
                 )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        Text(
+            text = "Sosial Media",
+            style = MaterialTheme.typography.headlineSmall,
+            color = TickleMePink,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                IconButton(
+                    onClick = { /* TODO open link in browser */ }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.instagram),
+                        contentDescription = "Instagram",
+                        tint = White
+                    )
+                }
+                IconButton(
+                    onClick = { /* TODO open link in browser */ }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.facebook),
+                        contentDescription = "Facebook",
+                        tint = White
+                    )
+                }
+                IconButton(
+                    onClick = { /* TODO open link in browser */ }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.website),
+                        contentDescription = "Website",
+                        tint = White
+                    )
+                }
             }
         }
     }

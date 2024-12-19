@@ -316,6 +316,7 @@ fun EventCard(event: Event, eventId: String, navController: NavController) {
                             Text(
                                 text = if (event.is_paid == "yes") "FREE" else "Pay",
                                 style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
                                 color = AlmostBlack,
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
@@ -328,6 +329,7 @@ fun EventCard(event: Event, eventId: String, navController: NavController) {
                             Text(
                                 text = event.eventType ?: "No info",
                                 style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
                                 color = White,
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )

@@ -302,8 +302,9 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                             Text(
                                 text = if (jobOffer.is_remote == "yes") "Remote" else "On-site",
                                 style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
                                 color = AlmostBlack,
-                                modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
                         }
                         Surface(
@@ -314,8 +315,9 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                             Text(
                                 text = jobOffer.type ?: "No info",
                                 style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
                                 color = AlmostBlack,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
                         }
                     }
