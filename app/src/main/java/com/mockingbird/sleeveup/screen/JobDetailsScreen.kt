@@ -1,28 +1,32 @@
-// app/src/main/java/com/mockingbird/sleeveup/screen/JobDetailsScreen.kt
 package com.mockingbird.sleeveup.screen
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mockingbird.sleeveup.R
 import com.mockingbird.sleeveup.entity.Company
 import com.mockingbird.sleeveup.entity.JobOffer
 import com.mockingbird.sleeveup.entity.User
@@ -30,9 +34,13 @@ import com.mockingbird.sleeveup.factory.JobDetailsViewModelFactory
 import com.mockingbird.sleeveup.model.JobDetailsViewModel
 import com.mockingbird.sleeveup.repository.FirebaseUserRepository
 import com.mockingbird.sleeveup.service.FirestoreService
-import com.mockingbird.sleeveup.service.StorageService
 import com.mockingbird.sleeveup.retrofit.ApiConfig
+import com.mockingbird.sleeveup.ui.theme.AlmostBlack
+import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.White
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,14 +76,16 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Job Details") },
+                title = { Text("Lowongan Kerja", color = White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, "backIcon")
+                        Icon(Icons.Filled.ArrowBack, "backIcon", tint = White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = AlmostBlack)
             )
-        }
+        },
+        containerColor = AlmostBlack
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -87,14 +97,14 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
         ) {
             when (jobOfferState) {
                 is JobDetailsViewModel.JobOfferState.Loading -> {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = White)
                 }
                 is JobDetailsViewModel.JobOfferState.Success -> {
                     val jobOffer = (jobOfferState as JobDetailsViewModel.JobOfferState.Success).jobOffer
 
                     when (companyState) {
                         is JobDetailsViewModel.CompanyState.Loading -> {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(color = White)
                         }
                         is JobDetailsViewModel.CompanyState.Success -> {
                             val company = (companyState as JobDetailsViewModel.CompanyState.Success).company
@@ -118,10 +128,10 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
                         is JobDetailsViewModel.CompanyState.Error -> {
                             val errorMessage =
                                 (companyState as JobDetailsViewModel.CompanyState.Error).message
-                            Text("Error fetching company details: $errorMessage")
+                            Text("Error fetching company details: $errorMessage", color = White)
                         }
                         else -> {
-                            Text("Waiting for company details...")
+                            Text("Waiting for company details...", color = White)
                         }
                     }
 
@@ -129,10 +139,10 @@ fun JobDetailsScreen(modifier: Modifier = Modifier, navController: NavController
                 is JobDetailsViewModel.JobOfferState.Error -> {
                     val errorMessage =
                         (jobOfferState as JobDetailsViewModel.JobOfferState.Error).message
-                    Text("Error fetching job offer details: $errorMessage")
+                    Text("Error fetching job offer details: $errorMessage", color = White)
                 }
                 else -> {
-                    Text("Waiting for job offer details...")
+                    Text("Waiting for job offer details...", color = White)
                 }
             }
         }
@@ -148,159 +158,172 @@ fun JobOfferDetails(
     onApplyJob: (User?, JobOffer) -> Unit,
     onRemoveJob: (User?) -> Unit
 ) {
-    var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
-    var isFullDescriptionExpanded by remember { mutableStateOf(false) }
-    var isRequirementsExpanded by remember { mutableStateOf(false) }
-    var isBenefitsExpanded by remember { mutableStateOf(false) }
 
     val isPending = when (pendingState) {
         is JobDetailsViewModel.PendingState.Success -> pendingState.isPending
         else -> false
     }
     val isLoading = pendingState is JobDetailsViewModel.PendingState.Loading
+
+
+    var isCompanyDescriptionExpanded by remember { mutableStateOf(false) }
+    var isRequirementsExpanded by remember { mutableStateOf(false) }
+    var isBenefitsExpanded by remember { mutableStateOf(false) }
+
+    val companyDescriptionLength = company.description.length
+    val requirementLength = jobOffer.requirement.length
+    val benefitsLength = jobOffer.benefits.length
+
+    val isCompanyExpandable = companyDescriptionLength > 100
+    val isRequirementExpandable = requirementLength > 100
+    val isBenefitsExpandable = benefitsLength > 100
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
-        // Job Offer Name
-        Text(
-            text = jobOffer.profession,
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
-        )
-        // Company Info
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                isCompanyDescriptionExpanded = !isCompanyDescriptionExpanded
-            }
+        Row(verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = company.name,
-                style = MaterialTheme.typography.headlineSmall,
-            )
             Icon(
-                imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "Expand Company Description",
+                imageVector = Icons.Default.Person,
+                contentDescription = "Placeholder profile picture",
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Gray),
+                tint = White
             )
-        }
-
-
-        AnimatedVisibility(
-            visible = isCompanyDescriptionExpanded,
-            enter = expandVertically(animationSpec = tween(300)),
-            exit = shrinkVertically(animationSpec = tween(300))
-        ) {
+            Spacer(modifier = Modifier.width(16.dp))
             Column {
+                // Job Offer Name
+                Text(
+                    text = jobOffer.profession,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MajorelieBlue
+                )
+                // Company Info
+                Text(
+                    text = company.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = White
+                )
                 Text(
                     text = company.email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 16.dp)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.LightGray
                 )
                 Text(
                     text = company.number,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 16.dp)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.LightGray
                 )
                 Text(
                     text = company.address,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 16.dp)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.LightGray
                 )
+            }
+
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Company Info
+        ExpandableCard(
+            title = "Tentang Perusahaan",
+            previewContent = {
+                Text(
+                    text = company.description.take(100),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            fullContent = {
                 Text(
                     text = company.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 16.dp)
+                    color = White
                 )
-            }
-        }
-
+            },
+            isExpanded = isCompanyDescriptionExpanded,
+            onExpandChange = {isCompanyDescriptionExpanded = it},
+            color = MajorelieBlue,
+            showEditButton = false,
+            isExpandable = isCompanyExpandable
+        )
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Job Full Description
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { isFullDescriptionExpanded = !isFullDescriptionExpanded }
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Full Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Expand Full Description",
-                        modifier = Modifier
-                            .size(24.dp)
-                    )
-                }
-                AnimatedVisibility(
-                    visible = isFullDescriptionExpanded,
-                    enter = expandVertically(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300))
-                ) {
-                    Text(text = jobOffer.full_description, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
 
         // Job Requirements
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { isRequirementsExpanded = !isRequirementsExpanded }
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Requirements", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Expand Requirements",
-                        modifier = Modifier
-                            .size(24.dp)
-                    )
-                }
-                AnimatedVisibility(
-                    visible = isRequirementsExpanded,
-                    enter = expandVertically(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300))
-                ) {
-                    Text(text = jobOffer.requirement, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
+        ExpandableCard(
+            title = "Persyaratan",
+            previewContent = {
+                Text(
+                    text = jobOffer.requirement.take(100),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            fullContent = {
+                Text(
+                    text = jobOffer.requirement,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = White
+                )
+            },
+            isExpanded = isRequirementsExpanded,
+            onExpandChange = {isRequirementsExpanded = it},
+            color = MajorelieBlue,
+            showEditButton = false,
+            isExpandable = isRequirementExpandable
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Job Benefits
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { isBenefitsExpanded = !isBenefitsExpanded }
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Benefits", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Expand Benefits",
-                        modifier = Modifier
-                            .size(24.dp)
+        ExpandableCard(
+            title = "Fasilitas Karyawan",
+            previewContent = {
+                Column{
+                    Text(
+                        text = jobOffer.benefits.take(100),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = White
                     )
+                    if (jobOffer.salary.isNotBlank()) {
+                        Text(
+                            text = "Gaji: Rp ${NumberFormat.getNumberInstance(Locale("id", "ID")).format(jobOffer.salary.toDouble())} / Bulan",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = White
+                        )
+                    }
                 }
-                AnimatedVisibility(
-                    visible = isBenefitsExpanded,
-                    enter = expandVertically(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300))
-                ) {
-                    Text(text = jobOffer.benefits, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            },
+            fullContent = {
+                Column{
+                    Text(
+                        text = jobOffer.benefits,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = White
+                    )
+                    if (jobOffer.salary.isNotBlank()) {
+                        Text(
+                            text = "Gaji: Rp ${NumberFormat.getNumberInstance(Locale("id", "ID")).format(jobOffer.salary.toDouble())} / Bulan",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = White
+                        )
+                    }
+                }
+
+            },
+            isExpanded = isBenefitsExpanded,
+            onExpandChange = {isBenefitsExpanded = it},
+            color = MajorelieBlue,
+            showEditButton = false,
+            isExpandable = isBenefitsExpandable
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
@@ -309,12 +332,16 @@ fun JobOfferDetails(
                 } else {
                     onApplyJob(user, jobOffer)
                 }
-            }, enabled = !isLoading
+            },
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MajorelieBlue)
         ) {
             if (isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = White)
             } else {
-                Text(if (isPending) "Batalkan Lamaran" else "Lamar sekarang!")
+                Text(if (isPending) "Batalkan Lamaran" else "Lamar sekarang!", color = White)
             }
         }
     }
