@@ -24,34 +24,3 @@ import com.mockingbird.sleeveup.entity.Event
 import com.mockingbird.sleeveup.navigation.Screen
 
 
-@Composable
-fun JobOfferCard(
-    jobOfferId: String, jobOffer: JobOffer, navController: NavController
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = jobOffer.profession,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = jobOffer.description,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = {
-                navController.navigate(Screen.JobDetails.createRoute(jobOfferId))
-            }) {
-                Text("See job details")
-            }
-        }
-    }
-}
