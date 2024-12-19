@@ -194,9 +194,9 @@ fun JobOfferDetails(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
-        Row(verticalAlignment = Alignment.Top,
+        Row(verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(

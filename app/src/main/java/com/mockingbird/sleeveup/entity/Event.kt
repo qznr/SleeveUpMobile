@@ -24,5 +24,6 @@ data class Event(
     @SerializedName("register_link")
     val registerLink: String,
     @SerializedName("time")
-    val time: String
+    val time: String,
+    val is_paid: String
 )

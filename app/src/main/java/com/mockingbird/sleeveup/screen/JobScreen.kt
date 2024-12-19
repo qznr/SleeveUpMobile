@@ -220,7 +220,7 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Gray),
+                    .background(Gray),
                 tint = White
             )
 
@@ -245,7 +245,8 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (jobOffer.salary.isNotBlank()) {
                         Icon(
@@ -265,7 +266,8 @@ fun JobCard(jobOffer: JobOffer, jobOfferId: String, navController: NavController
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (jobOffer.education.isNotBlank()) {
                         Icon(

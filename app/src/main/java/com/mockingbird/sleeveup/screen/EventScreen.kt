@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,7 +63,11 @@ import com.mockingbird.sleeveup.navigation.Screen
 import com.mockingbird.sleeveup.service.AuthService
 import com.mockingbird.sleeveup.ui.theme.AlmostBlack
 import com.mockingbird.sleeveup.ui.theme.MajorelieBlue
+import com.mockingbird.sleeveup.ui.theme.Moonstone
+import com.mockingbird.sleeveup.ui.theme.TickleMePink
 import com.mockingbird.sleeveup.ui.theme.White
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -248,18 +253,87 @@ fun EventCard(event: Event, eventId: String, navController: NavController) {
                     color = MajorelieBlue
                 )
                 Text(
-                    text = event.description,
+                    text = event.eventOrganizer,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                    maxLines = 4,
-                    overflow = TextOverflow.Ellipsis
+                    color = White
                 )
-                Text(
-                    text = event.date,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray,
-                    maxLines = 1
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (event.date.isNotBlank()) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_today_24),
+                            contentDescription = "Time",
+                            tint = Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = event.date,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (event.time.isNotBlank()) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_access_time_24),
+                            contentDescription = "Time",
+                            tint = Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = event.time,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (event.is_paid == "yes") Moonstone else TickleMePink,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (event.is_paid == "yes") "FREE" else "Pay",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = AlmostBlack,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MajorelieBlue,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = event.eventType ?: "No info",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = White,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
         HorizontalDivider(

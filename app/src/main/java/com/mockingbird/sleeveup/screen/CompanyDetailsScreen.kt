@@ -134,7 +134,7 @@ fun CompanyDetailsContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
